@@ -1,0 +1,57 @@
+name: Test SwitchBot API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-switchbot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get SwitchBot devices
+        env:
+          SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
+          SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
+        run: |
+          python3 <<'PY'
+          import os
+          import time
+          import uuid
+          import hmac
+          import hashlib
+          import base64
+          import urllib.request
+          import json
+
+          token = os.environ["SWITCHBOT_TOKEN"]
+          secret = os.environ["SWITCHBOT_SECRET"]
+
+          t = str(int(time.time() * 1000))
+          nonce = str(uuid.uuid4())
+
+          data = token + t + nonce
+
+          sign = base64.b64encode(
+              hmac.new(
+                  secret.encode("utf-8"),
+                  data.encode("utf-8"),
+                  hashlib.sha256
+              ).digest()
+          ).decode("utf-8")
+
+          req = urllib.request.Request(
+              "https://api.switch-bot.com/v1.1/devices",
+              headers={
+                  "Authorization": token,
+                  "sign": sign,
+                  "nonce": nonce,
+                  "t": t,
+                  "Content-Type": "application/json"
+              }
+          )
+
+          with urllib.request.urlopen(req) as response:
+              result = json.loads(response.read().decode())
+
+          print(json.dumps(result, indent=2))
+          PY
