@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://simo9146.github.io/Meteo_TrezzanoS-N/sitemap.xml
+Sitemap: https://meteotrezzano.it/sitemap.xml
