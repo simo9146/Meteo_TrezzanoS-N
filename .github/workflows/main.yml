@@ -1,6 +1,8 @@
 name: Update Weather Data
+
 permissions:
   contents: write
+
 on:
   workflow_dispatch:
   schedule:
@@ -19,6 +21,7 @@ jobs:
           SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
           SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
           DEVICE_ID: E77601C60C32
+
         run: |
           python3 <<'PY'
           import os
@@ -29,13 +32,16 @@ jobs:
           import base64
           import urllib.request
           import json
+          from datetime import datetime, timezone, timedelta
 
           token = os.environ["SWITCHBOT_TOKEN"]
           secret = os.environ["SWITCHBOT_SECRET"]
           device_id = os.environ["DEVICE_ID"]
 
+          # --- AUTENTICAZIONE SWITCHBOT ---
           t = str(int(time.time() * 1000))
           nonce = str(uuid.uuid4())
+
           data = token + t + nonce
 
           sign = base64.b64encode(
@@ -64,26 +70,97 @@ jobs:
 
           body = result.get("body", {})
 
-          output = {
+          temperature = body.get("temperature")
+          humidity = body.get("humidity")
+          battery = body.get("battery")
+
+          now = datetime.now(timezone.utc)
+
+          timestamp = now.isoformat()
+
+          # ------------------------------------------------
+          # FILE CON IL DATO ATTUALE
+          # ------------------------------------------------
+
+          current_data = {
               "deviceId": device_id,
-              "temperature": body.get("temperature"),
-              "humidity": body.get("humidity"),
-              "battery": body.get("battery"),
-              "updatedAt": time.strftime("%Y-%m-%d %H:%M:%S")
+              "temperature": temperature,
+              "humidity": humidity,
+              "battery": battery,
+              "updatedAt": timestamp
           }
 
           with open("weather-data.json", "w", encoding="utf-8") as f:
-              json.dump(output, f, ensure_ascii=False, indent=2)
+              json.dump(
+                  current_data,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
 
-          print(json.dumps(output, indent=2, ensure_ascii=False))
+          # ------------------------------------------------
+          # STORICO
+          # ------------------------------------------------
+
+          history_file = "weather-history.json"
+
+          try:
+              with open(history_file, "r", encoding="utf-8") as f:
+                  history = json.load(f)
+
+              if not isinstance(history, list):
+                  history = []
+
+          except (FileNotFoundError, json.JSONDecodeError):
+              history = []
+
+          history.append({
+              "time": timestamp,
+              "temperature": temperature,
+              "humidity": humidity
+          })
+
+          # Conserviamo gli ultimi 7 giorni
+          cutoff = now - timedelta(days=7)
+
+          clean_history = []
+
+          for item in history:
+              try:
+                  item_time = datetime.fromisoformat(
+                      item["time"].replace("Z", "+00:00")
+                  )
+
+                  if item_time >= cutoff:
+                      clean_history.append(item)
+
+              except Exception:
+                  pass
+
+          with open(history_file, "w", encoding="utf-8") as f:
+              json.dump(
+                  clean_history,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print("DATO ATTUALE")
+          print(json.dumps(current_data, indent=2))
+
+          print()
+          print("Numero rilevazioni nello storico:", len(clean_history))
+
           PY
 
       - name: Commit weather data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add weather-data.json
-          git diff --staged --quiet || git commit -m "Update weather data"
+
+          git add weather-data.json weather-history.json
+
+          git diff --staged --quiet || git commit -m "Update SwitchBot weather data"
 
       - name: Push changes
         run: |
