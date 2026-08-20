@@ -6,7 +6,7 @@ permissions:
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/10 * * * *'
 
 jobs:
   update-weather:
@@ -32,13 +32,18 @@ jobs:
           import base64
           import urllib.request
           import json
+
           from datetime import datetime, timezone, timedelta
+          from zoneinfo import ZoneInfo
 
           token = os.environ["SWITCHBOT_TOKEN"]
           secret = os.environ["SWITCHBOT_SECRET"]
           device_id = os.environ["DEVICE_ID"]
 
-          # --- AUTENTICAZIONE SWITCHBOT ---
+          # ------------------------------------------------
+          # SWITCHBOT API
+          # ------------------------------------------------
+
           t = str(int(time.time() * 1000))
           nonce = str(uuid.uuid4())
 
@@ -74,12 +79,21 @@ jobs:
           humidity = body.get("humidity")
           battery = body.get("battery")
 
-          now = datetime.now(timezone.utc)
+          if temperature is None or humidity is None:
+              raise RuntimeError("Temperatura o umidità non disponibili")
 
-          timestamp = now.isoformat()
+          temperature = float(temperature)
+          humidity = int(humidity)
+
+          now_utc = datetime.now(timezone.utc)
+          now_italy = now_utc.astimezone(ZoneInfo("Europe/Rome"))
+
+          timestamp = now_utc.isoformat()
+          local_date = now_italy.strftime("%Y-%m-%d")
+          local_time = now_italy.strftime("%H:%M")
 
           # ------------------------------------------------
-          # FILE CON IL DATO ATTUALE
+          # DATO ATTUALE
           # ------------------------------------------------
 
           current_data = {
@@ -99,7 +113,7 @@ jobs:
               )
 
           # ------------------------------------------------
-          # STORICO
+          # STORICO ULTIMI 7 GIORNI
           # ------------------------------------------------
 
           history_file = "weather-history.json"
@@ -120,8 +134,7 @@ jobs:
               "humidity": humidity
           })
 
-          # Conserviamo gli ultimi 7 giorni
-          cutoff = now - timedelta(days=7)
+          cutoff = now_utc - timedelta(days=7)
 
           clean_history = []
 
@@ -145,11 +158,76 @@ jobs:
                   indent=2
               )
 
-          print("DATO ATTUALE")
+          # ------------------------------------------------
+          # ARCHIVIO GIORNALIERO PERMANENTE
+          # ------------------------------------------------
+
+          daily_file = "weather-daily.json"
+
+          try:
+              with open(daily_file, "r", encoding="utf-8") as f:
+                  daily = json.load(f)
+
+              if not isinstance(daily, list):
+                  daily = []
+
+          except (FileNotFoundError, json.JSONDecodeError):
+              daily = []
+
+          today = None
+
+          for item in daily:
+              if item.get("date") == local_date:
+                  today = item
+                  break
+
+          if today is None:
+
+              today = {
+                  "date": local_date,
+                  "min": temperature,
+                  "minTime": local_time,
+                  "max": temperature,
+                  "maxTime": local_time,
+                  "samples": 1
+              }
+
+              daily.append(today)
+
+          else:
+
+              today["samples"] = int(today.get("samples", 0)) + 1
+
+              if temperature < float(today["min"]):
+                  today["min"] = temperature
+                  today["minTime"] = local_time
+
+              if temperature > float(today["max"]):
+                  today["max"] = temperature
+                  today["maxTime"] = local_time
+
+          daily.sort(
+              key=lambda x: x.get("date", "")
+          )
+
+          with open(daily_file, "w", encoding="utf-8") as f:
+              json.dump(
+                  daily,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print("Dato attuale:")
           print(json.dumps(current_data, indent=2))
 
           print()
-          print("Numero rilevazioni nello storico:", len(clean_history))
+          print("Rilevazioni storico 7 giorni:", len(clean_history))
+          print("Giorni archivio:", len(daily))
+
+          print()
+          print("Oggi:")
+          print(json.dumps(today, indent=2))
 
           PY
 
@@ -158,7 +236,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add weather-data.json weather-history.json
+          git add weather-data.json weather-history.json weather-daily.json
 
           git diff --staged --quiet || git commit -m "Update SwitchBot weather data"
 
