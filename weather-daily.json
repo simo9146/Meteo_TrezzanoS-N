@@ -6,5 +6,13 @@
     "max": 20.5,
     "maxTime": "21:59",
     "samples": 3
+  },
+  {
+    "date": "2026-08-21",
+    "min": 19.8,
+    "minTime": "00:59",
+    "max": 19.8,
+    "maxTime": "00:59",
+    "samples": 1
   }
 ]
