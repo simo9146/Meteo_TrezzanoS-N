@@ -1,17 +1,23 @@
-name: Test SwitchBot API
+name: Update Weather Data
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
 
 jobs:
-  test-switchbot:
+  update-weather:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get SwitchBot devices
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get SwitchBot sensor data
         env:
           SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
           SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
+          DEVICE_ID: E77601C60C32
         run: |
           python3 <<'PY'
           import os
@@ -25,10 +31,10 @@ jobs:
 
           token = os.environ["SWITCHBOT_TOKEN"]
           secret = os.environ["SWITCHBOT_SECRET"]
+          device_id = os.environ["DEVICE_ID"]
 
           t = str(int(time.time() * 1000))
           nonce = str(uuid.uuid4())
-
           data = token + t + nonce
 
           sign = base64.b64encode(
@@ -39,8 +45,10 @@ jobs:
               ).digest()
           ).decode("utf-8")
 
+          url = f"https://api.switch-bot.com/v1.1/devices/{device_id}/status"
+
           req = urllib.request.Request(
-              "https://api.switch-bot.com/v1.1/devices",
+              url,
               headers={
                   "Authorization": token,
                   "sign": sign,
@@ -53,5 +61,29 @@ jobs:
           with urllib.request.urlopen(req) as response:
               result = json.loads(response.read().decode())
 
-          print(json.dumps(result, indent=2))
+          body = result.get("body", {})
+
+          output = {
+              "deviceId": device_id,
+              "temperature": body.get("temperature"),
+              "humidity": body.get("humidity"),
+              "battery": body.get("battery"),
+              "updatedAt": time.strftime("%Y-%m-%d %H:%M:%S")
+          }
+
+          with open("weather-data.json", "w", encoding="utf-8") as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
+
+          print(json.dumps(output, indent=2, ensure_ascii=False))
           PY
+
+      - name: Commit weather data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weather-data.json
+          git diff --staged --quiet || git commit -m "Update weather data"
+
+      - name: Push changes
+        run: |
+          git push
