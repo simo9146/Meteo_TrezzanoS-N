@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0c2235">
+  <meta name="description" content="Informazioni sulla stazione meteo amatoriale di Trezzano sul Naviglio: sensore, posizione, raccolta dati e aggiornamenti.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://meteotrezzano.it/stazione.html">
+
+  <title>La stazione meteo | Meteo Trezzano sul Naviglio</title>
+
+  <style>
+    :root{
+      --bg:#eef3f7;
+      --card:#fff;
+      --ink:#14212b;
+      --muted:#6f7d89;
+      --line:#dde6ec;
+      --soft:#f5f8fa;
+      --hero1:#0c2235;
+      --hero2:#245f88;
+      --shadow:0 10px 30px rgba(19,45,65,.08)
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 100% 0%,rgba(64,140,190,.10),transparent 28%),
+        var(--bg)
+    }
+
+    .wrap{
+      width:min(900px,calc(100% - 24px));
+      margin:auto;
+      padding:14px 0 30px
+    }
+
+    .hero{
+      background:linear-gradient(135deg,var(--hero1),var(--hero2));
+      color:#fff;
+      border-radius:24px;
+      padding:24px;
+      box-shadow:0 16px 40px rgba(8,34,53,.18)
+    }
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.72;
+      font-weight:700
+    }
+
+    h1{
+      margin:6px 0 8px;
+      font-size:32px;
+      letter-spacing:-.03em
+    }
+
+    .hero p{
+      margin:0;
+      opacity:.82;
+      line-height:1.6
+    }
+
+    .card{
+      margin-top:14px;
+      background:var(--card);
+      border:1px solid rgba(120,145,162,.12);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:20px
+    }
+
+    h2{
+      margin:0 0 10px;
+      font-size:19px
+    }
+
+    p{
+      line-height:1.65
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+      margin-top:14px
+    }
+
+    .fact{
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px
+    }
+
+    .fact span{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.06em
+    }
+
+    .fact b{
+      display:block;
+      margin-top:4px;
+      font-size:16px
+    }
+
+    .note{
+      background:#f7fafc;
+      border-left:4px solid #2f7fb4;
+      padding:13px 15px;
+      border-radius:10px;
+      color:#5d6d78
+    }
+
+    a{
+      color:#245f88
+    }
+
+    .back{
+      display:inline-block;
+      margin-top:16px;
+      text-decoration:none;
+      font-weight:700
+    }
+
+    footer{
+      text-align:center;
+      color:#7c8993;
+      font-size:11px;
+      padding:22px 10px 4px;
+      line-height:1.7
+    }
+
+    .legal-links{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:7px
+    }
+
+    @media(max-width:600px){
+      .facts{grid-template-columns:1fr}
+      .hero{padding:19px}
+      h1{font-size:27px}
+      .card{padding:17px}
+    }
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <section class="hero">
+    <div class="eyebrow">Meteo Trezzano sul Naviglio</div>
+    <h1>La stazione meteo</h1>
+    <p>
+      Un progetto meteorologico amatoriale e indipendente dedicato
+      alla raccolta di dati locali a Trezzano sul Naviglio.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Dove si trova il sensore</h2>
+
+    <p>
+      Il sensore è installato all'aperto in un giardino privato
+      nel territorio di <strong>Trezzano sul Naviglio (MI)</strong>.
+      Per motivi di privacy non viene pubblicata la posizione precisa
+      dell'installazione.
+    </p>
+
+    <p class="note">
+      Le rilevazioni descrivono le condizioni meteorologiche nel punto
+      di installazione e possono differire leggermente da quelle
+      registrate in altre zone del comune.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Come vengono raccolti i dati</h2>
+
+    <p>
+      Temperatura e umidità vengono rilevate da un
+      <strong>SwitchBot Outdoor Meter</strong>.
+      Il sensore comunica con uno SwitchBot Hub, che rende disponibili
+      i dati tramite il servizio cloud SwitchBot.
+    </p>
+
+    <p>
+      Un sistema automatico acquisisce periodicamente le letture,
+      aggiorna il dato corrente e costruisce lo storico usato
+      per il grafico delle ultime 24 ore.
+      Il punto di rugiada viene calcolato usando temperatura e umidità
+      misurate dal sensore.
+    </p>
+
+    <div class="facts">
+      <div class="fact">
+        <span>Sensore</span>
+        <b>SwitchBot Outdoor Meter</b>
+      </div>
+
+      <div class="fact">
+        <span>Località</span>
+        <b>Trezzano sul Naviglio (MI)</b>
+      </div>
+
+      <div class="fact">
+        <span>Installazione</span>
+        <b>Esterno · giardino privato</b>
+      </div>
+
+      <div class="fact">
+        <span>Aggiornamento</span>
+        <b>Circa ogni 30 minuti</b>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Dati locali e previsioni</h2>
+
+    <p>
+      I valori di <strong>temperatura, umidità e punto di rugiada</strong>
+      mostrati in home sono basati sul sensore locale.
+    </p>
+
+    <p>
+      Anche il grafico delle ultime 24 ore usa lo storico delle
+      rilevazioni SwitchBot archiviate automaticamente.
+    </p>
+
+    <p>
+      Le <strong>previsioni dei prossimi giorni</strong> sono invece
+      fornite da Open-Meteo e non sono misurate direttamente
+      dalla stazione.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Il progetto</h2>
+
+    <p>
+      Meteo Trezzano sul Naviglio nasce come progetto amatoriale
+      per raccogliere e rendere facilmente consultabili dati
+      meteorologici realmente rilevati sul territorio.
+    </p>
+
+    <p>
+      Il sito non è una stazione meteorologica ufficiale e non sostituisce
+      i dati degli enti meteorologici o delle reti professionali.
+    </p>
+  </section>
+
+  <a class="back" href="index.html">← Torna alla home meteo</a>
+
+  <footer>
+    Meteo Trezzano sul Naviglio · Progetto meteorologico amatoriale indipendente
+
+    <div class="legal-links">
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="cookie.html">Cookie Policy</a>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>
