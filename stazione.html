@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#071b32">
+  <meta name="description" content="Informazioni sulla stazione meteo amatoriale di Trezzano sul Naviglio: sensore, posizione, raccolta dati e aggiornamenti.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://meteotrezzano.it/stazione.html">
+  <title>La stazione meteo | Meteo Trezzano sul Naviglio</title>
+  <style>
+
+    :root{
+      --navy:#06192f;
+      --navy2:#0b2d4f;
+      --blue:#0d6efd;
+      --blue-soft:#1e6fae;
+      --ink:#0e2238;
+      --muted:#66788a;
+      --bg:#f5f8fb;
+      --card:#fff;
+      --line:#e3ebf2;
+      --shadow:0 10px 26px rgba(18,48,75,.08);
+      --shadow-soft:0 12px 32px rgba(18,48,75,.06);
+      --red:#f05656;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%,rgba(32,119,205,.08),transparent 28%),
+        linear-gradient(180deg,#f8fafc 0%,#f1f5f8 100%);
+    }
+
+    .site-header{
+      background:linear-gradient(135deg,var(--navy),#09284a);
+      color:#fff;
+      box-shadow:0 3px 14px rgba(6,25,47,.18);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+
+    .header-inner{
+      width:min(1180px,calc(100% - 36px));
+      margin:auto;
+      min-height:88px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+    }
+
+    .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    .brand-icon{font-size:42px;line-height:1}
+    .brand-title{font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .brand-sub{font-size:13px;color:rgba(255,255,255,.72);margin-top:5px}
+
+    .back-nav a{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:700;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.08);
+    }
+    .back-nav a:hover{
+      background:rgba(255,255,255,.14);
+    }
+
+    .wrap{
+      width:min(1180px,calc(100% - 36px));
+      margin:auto;
+      padding:26px 0 34px;
+    }
+
+    .page-hero{
+      background:linear-gradient(180deg,#fff 0%,#f7fafc 100%);
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:22px;
+      box-shadow:var(--shadow-soft);
+      padding:24px 26px;
+      margin-bottom:18px;
+    }
+
+    .eyebrow{
+      color:var(--blue-soft);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:6px;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(28px,4vw,40px);
+      letter-spacing:-.04em;
+      line-height:1.02;
+    }
+    .hero-text{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.7;
+      max-width:900px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:22px;
+      box-shadow:var(--shadow-soft);
+      padding:22px 24px;
+    }
+
+    .stack{display:grid;gap:18px}
+
+    .section-title{
+      margin:0 0 12px;
+      font-size:22px;
+      letter-spacing:-.03em;
+    }
+
+    p{
+      margin:0 0 12px;
+      color:#33485c;
+      line-height:1.75;
+      font-size:15px;
+    }
+    p:last-child{margin-bottom:0}
+
+    footer{
+      text-align:center;
+      color:#7d8b98;
+      font-size:11px;
+      padding:26px 10px 8px;
+      line-height:1.7;
+    }
+    footer a{color:inherit}
+    .legal-links{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:7px;
+    }
+
+    @media(max-width:720px){
+      .header-inner{
+        width:min(100% - 20px,1180px);
+        min-height:auto;
+        padding:13px 0;
+        display:block;
+      }
+      .brand{padding-bottom:12px}
+      .brand-icon{font-size:34px}
+      .brand-title{font-size:23px}
+      .brand-sub{font-size:11px}
+      .wrap{width:min(100% - 16px,1180px);padding-top:14px}
+      .page-hero,.card{padding:18px}
+      p{font-size:14px}
+    } }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">🌤️</div>
+      <div>
+        <div class="brand-title">Meteo Trezzano</div>
+        <div class="brand-sub">Stazione meteo amatoriale</div>
+      </div>
+    </div>
+    <nav class="back-nav" aria-label="Navigazione">
+      <a href="index.html">← Torna alla Home</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="page-hero">
+    <div class="eyebrow">Meteo Trezzano sul Naviglio</div>
+    <h1>La stazione meteo</h1>
+    <div class="hero-text">Informazioni sul sensore, sulla posizione di rilevamento e su come vengono raccolti e aggiornati i dati pubblicati sul sito.</div>
+  </section>
+
+  <div class="stack">
+    <section class="card">
+      <h2 class="section-title">Dove si trova il sensore</h2>
+      <p>Il sensore è installato all'aperto in un giardino privato nella parte finale dell'abitato di <strong>Trezzano sul Naviglio (MI)</strong>, in una zona aperta che guarda verso le campagne in direzione di <strong>Gaggiano</strong>.</p>
+      <p>L'area si trova ai margini del tessuto urbano, con ampi spazi agricoli nelle immediate vicinanze. La stazione si trova nella zona sud-occidentale dell’area metropolitana di Milano, in un contesto di transizione tra abitato e campagne.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Come vengono raccolti i dati</h2>
+      <p>Temperatura e umidità vengono rilevate da un <strong>SwitchBot Outdoor Meter</strong>. Il sensore comunica con uno SwitchBot Hub, che rende disponibili i dati tramite il servizio cloud SwitchBot.</p>
+      <p>Un sistema automatico acquisisce periodicamente le letture, aggiorna il dato corrente e costruisce lo storico usato per il grafico delle ultime 24 ore. Il punto di rugiada viene calcolato usando temperatura e umidità misurate dal sensore.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Dati locali e previsioni</h2>
+      <p>I valori di <strong>temperatura, umidità e punto di rugiada</strong> mostrati in home sono basati sul sensore locale.</p>
+      <p>Anche il grafico delle ultime 24 ore usa lo storico delle rilevazioni SwitchBot archiviate automaticamente.</p>
+      <p>Le <strong>previsioni dei prossimi giorni</strong> sono invece fornite da Open-Meteo e non sono misurate direttamente dalla stazione.</p>
+    </section>
+  </div>
+
+  <footer>
+    Meteo Trezzano sul Naviglio · Pagina informativa sulla stazione
+    <div class="legal-links">
+      <a href="archivio.html">Archivio</a>
+      <a href="articoli.html">Articoli</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="cookie.html">Cookie Policy</a>
+    </div>
+  </footer>
+</main>
+</body>
+</html>
