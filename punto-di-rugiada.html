@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#071b32">
+
+  <title>Punto di rugiada: perché la temperatura non basta | Meteo Trezzano</title>
+  <meta name="description" content="Punto di rugiada spiegato in modo semplice: perché la temperatura da sola non basta e come capire subito quando l’aria è secca, umida o afosa.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://meteotrezzano.it/punto-di-rugiada.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Punto di rugiada: cos'è e come capire l'afa">
+  <meta property="og:description" content="Una guida rapida al punto di rugiada, con valori pratici e dati locali di Trezzano sul Naviglio.">
+  <meta property="og:url" content="https://meteotrezzano.it/punto-di-rugiada.html">
+  <meta property="og:site_name" content="Meteo Trezzano">
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"Punto di rugiada: cos'è e come capire l'afa",
+    "description":"Guida rapida al punto di rugiada con valori pratici e riferimento ai dati locali di Trezzano sul Naviglio.",
+    "mainEntityOfPage":"https://meteotrezzano.it/punto-di-rugiada.html",
+    "publisher":{
+      "@type":"Organization",
+      "name":"Meteo Trezzano",
+      "url":"https://meteotrezzano.it/"
+    },
+    "inLanguage":"it-IT",
+    "about":["punto di rugiada","umidità","afa","meteorologia","Trezzano sul Naviglio"]
+  }
+  </script>
+
+  <style>
+    :root{
+      --navy:#06192f;
+      --navy2:#0b2d4f;
+      --blue:#0d6efd;
+      --blue-soft:#1e6fae;
+      --cyan:#2db7f5;
+      --green:#2fa36b;
+      --yellow:#e3b645;
+      --orange:#ee8b3a;
+      --red:#d95f5f;
+      --ink:#0e2238;
+      --muted:#66788a;
+      --line:#e3ebf2;
+      --shadow:0 12px 32px rgba(18,48,75,.07);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%,rgba(32,119,205,.08),transparent 28%),
+        linear-gradient(180deg,#f8fafc 0%,#f1f5f8 100%);
+    }
+
+    .site-header{
+      background:linear-gradient(135deg,var(--navy),#09284a);
+      color:#fff;
+      box-shadow:0 3px 14px rgba(6,25,47,.18);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+
+    .header-inner{
+      width:min(1080px,calc(100% - 36px));
+      margin:auto;
+      min-height:88px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+    }
+
+    .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    .brand-icon{font-size:42px;line-height:1}
+    .brand-title{font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .brand-sub{font-size:13px;color:rgba(255,255,255,.72);margin-top:5px}
+
+    .top-nav{display:flex;gap:10px}
+    .top-nav a{
+      color:#fff;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:750;
+      padding:10px 13px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.07);
+    }
+
+    .wrap{
+      width:min(1080px,calc(100% - 36px));
+      margin:auto;
+      padding:26px 0 36px;
+    }
+
+    .article-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:26px;
+      border:1px solid rgba(141,162,181,.18);
+      box-shadow:var(--shadow);
+      background:
+        radial-gradient(circle at 88% 18%,rgba(13,110,253,.16),transparent 26%),
+        linear-gradient(135deg,#ffffff 0%,#f4faff 100%);
+      padding:32px 34px;
+      margin-bottom:18px;
+    }
+
+    .kicker{
+      color:var(--blue-soft);
+      font-size:12px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      margin-bottom:10px;
+    }
+
+    .topic-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      margin:0 0 12px;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#eef7ff;
+      border:1px solid #d9eaf8;
+      color:#256fa7;
+      font-size:12px;
+      font-weight:850;
+      letter-spacing:.01em;
+    }
+
+    h1{
+      margin:0;
+      max-width:840px;
+      font-size:clamp(32px,5vw,48px);
+      line-height:1.03;
+      letter-spacing:-.045em;
+    }
+
+    .hero-lead{
+      max-width:760px;
+      margin:15px 0 0;
+      color:#455d72;
+      font-size:17px;
+      line-height:1.65;
+    }
+
+    .meta-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .meta-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#eef6fd;
+      border:1px solid #d8e8f7;
+      color:#416079;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .hero-symbol{
+      position:absolute;
+      right:28px;
+      bottom:-12px;
+      font-size:96px;
+      opacity:.13;
+      transform:rotate(-8deg);
+      pointer-events:none;
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .summary-icon{
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      font-size:24px;
+      margin-bottom:12px;
+      background:linear-gradient(135deg,#edf7ff,#dff0ff);
+      border:1px solid #d3e8fb;
+    }
+
+    .summary-card h3{
+      margin:0 0 6px;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+
+    .summary-card p{
+      margin:0;
+      color:#5d7182;
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .summary-grid-single{
+      grid-template-columns:1fr;
+    }
+
+    .summary-card-wide{
+      padding:20px 22px;
+    }
+
+    .summary-inline{
+      display:grid;
+      grid-template-columns:46px minmax(0,1fr);
+      gap:14px;
+      align-items:start;
+    }
+
+    .summary-inline .summary-icon{
+      margin-bottom:0;
+    }
+
+    .summary-inline h3{
+      margin:2px 0 5px;
+    }
+
+    .summary-separator{
+      height:1px;
+      background:var(--line);
+      margin:16px 0;
+    }
+
+    .article{
+      background:#fff;
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:28px 30px;
+    }
+
+    .article h2{
+      margin:0 0 10px;
+      font-size:25px;
+      letter-spacing:-.03em;
+    }
+
+    .article section + section{
+      margin-top:30px;
+      padding-top:28px;
+      border-top:1px solid var(--line);
+    }
+
+    .article p{
+      margin:0 0 15px;
+      color:#33485c;
+      font-size:16px;
+      line-height:1.75;
+    }
+
+    .explain-panel{
+      border:1px solid #dfe9f1;
+      border-radius:20px;
+      overflow:hidden;
+      background:linear-gradient(180deg,#fbfdff 0%,#f7fafc 100%);
+    }
+
+    .explain-block{
+      display:grid;
+      grid-template-columns:54px minmax(0,1fr);
+      gap:14px;
+      align-items:start;
+      padding:20px;
+    }
+
+    .explain-icon{
+      width:54px;
+      height:54px;
+      display:grid;
+      place-items:center;
+      border-radius:15px;
+      background:#eef6fd;
+      border:1px solid #dceaf5;
+      font-size:27px;
+    }
+
+    .explain-block h2{
+      margin:2px 0 8px;
+    }
+
+    .explain-block p{
+      margin:0;
+    }
+
+    .explain-divider{
+      height:1px;
+      background:var(--line);
+      margin:0 20px;
+    }
+
+    .scale-intro{
+      margin-bottom:14px;
+      color:#486075;
+      font-size:15px;
+      line-height:1.65;
+    }
+
+    .scale{
+      display:grid;
+      gap:10px;
+    }
+
+    .scale-row{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:14px;
+      align-items:center;
+      padding:0;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid #e2eaf1;
+      background:#fff;
+    }
+
+    .scale-range{
+      align-self:stretch;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px 12px;
+      font-weight:900;
+      font-size:15px;
+      color:#fff;
+      letter-spacing:-.01em;
+    }
+
+    .range-1{background:linear-gradient(135deg,#56a7da,#3f89b9)}
+    .range-2{background:linear-gradient(135deg,#40b985,#2f9f6c)}
+    .range-3{background:linear-gradient(135deg,#d8b14f,#bf9230)}
+    .range-4{background:linear-gradient(135deg,#f09a48,#db7d2e)}
+    .range-5{background:linear-gradient(135deg,#e57777,#cf5858)}
+
+    .scale-content{
+      padding:15px 16px;
+    }
+
+    .scale-content strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:15px;
+      color:#18334c;
+    }
+
+    .scale-content span{
+      display:block;
+      color:#5d7182;
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .bottom-links{
+      margin-top:22px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .bottom-links a{
+      color:var(--blue-soft);
+      text-decoration:none;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    footer{
+      text-align:center;
+      color:#7d8b98;
+      font-size:11px;
+      padding:28px 10px 8px;
+      line-height:1.7;
+    }
+
+    footer a{color:inherit}
+    .legal-links{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:7px;
+    }
+
+    @media(max-width:860px){
+      .summary-grid{grid-template-columns:1fr}
+    }
+
+    @media(max-width:720px){
+      .header-inner{
+        width:min(100% - 20px,1080px);
+        min-height:auto;
+        padding:13px 0;
+        display:block;
+      }
+      .brand{padding-bottom:12px}
+      .brand-icon{font-size:34px}
+      .brand-title{font-size:23px}
+      .brand-sub{font-size:11px}
+      .top-nav{overflow-x:auto;scrollbar-width:none}
+      .top-nav::-webkit-scrollbar{display:none}
+      .top-nav a{white-space:nowrap}
+
+      .wrap{width:min(100% - 16px,1080px);padding-top:14px}
+      .article-hero{padding:24px 20px}
+      .hero-lead{font-size:16px;padding-right:20px}
+      .hero-symbol{font-size:72px;right:12px}
+      .article{padding:20px 18px}
+      .article h2{font-size:22px}
+      .article p{font-size:15px}
+      .summary-card-wide{padding:16px}
+      .summary-inline{grid-template-columns:44px minmax(0,1fr);gap:12px}
+      .summary-separator{margin:14px 0}
+      .explain-block{grid-template-columns:44px minmax(0,1fr);gap:12px;padding:16px}
+      .explain-icon{width:44px;height:44px;border-radius:13px;font-size:23px}
+      .explain-divider{margin:0 16px}
+      .scale-row{grid-template-columns:1fr}
+      .scale-range{padding:12px}
+    }
+  </style>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">🌤️</div>
+      <div>
+        <div class="brand-title">Meteo Trezzano</div>
+        <div class="brand-sub">Stazione meteo amatoriale</div>
+      </div>
+    </div>
+
+    <nav class="top-nav" aria-label="Navigazione">
+      <a href="articoli.html">← Articoli</a>
+      <a href="index.html">Home</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="article-hero">
+    <div class="kicker">Curiosità meteo · afa e umidità</div>
+    <div class="topic-badge">🍃 In questo articolo: il punto di rugiada</div>
+    <h1>Non farti ingannare dalla temperatura</h1>
+    <p class="hero-lead">
+      La temperatura da sola non dice sempre come si sta davvero fuori. La stessa giornata può sembrare piacevole oppure pesante e afosa a seconda di quanta umidità c’è nell’aria. È qui che entra in gioco il <strong>punto di rugiada</strong>.
+    </p>
+    <div class="meta-row">
+      <span class="meta-pill">⏱️ Lettura veloce: 3 minuti</span>
+      <span class="meta-pill">📍 Con dati della stazione di Trezzano</span>
+    </div>
+    <div class="hero-symbol">🍃</div>
+  </section>
+
+  <section class="summary-grid summary-grid-single" aria-label="Sintesi rapida">
+    <article class="summary-card summary-card-wide">
+      <div class="summary-inline">
+        <div class="summary-icon">🌡️</div>
+        <div>
+          <h3>I gradi non bastano</h3>
+          <p>La temperatura misura quanto è calda o fredda l’aria, ma non racconta da sola come verrà percepita.</p>
+        </div>
+      </div>
+
+      <div class="summary-separator"></div>
+
+      <div class="summary-inline">
+        <div class="summary-icon">🍃</div>
+        <div>
+          <h3>Il dato che completa il quadro</h3>
+          <p>Il punto di rugiada aiuta a capire cosa c’è dietro quel numero sul termometro e quanto l’aria sarà davvero secca, umida o afosa.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <article class="article">
+
+    <section>
+      <div class="explain-panel">
+        <div class="explain-block">
+          <div class="explain-icon">🌡️</div>
+          <div>
+            <h2>Cosa cambia quando l’aria è umida?</h2>
+            <p>
+              Quando fa caldo, il corpo suda per raffreddarsi. Se l’aria è secca, il sudore evapora facilmente e ci sentiamo meglio. Se l’aria è molto umida, evapora più lentamente e sentiamo più caldo e afa.
+            </p>
+          </div>
+        </div>
+
+        <div class="explain-divider"></div>
+
+        <div class="explain-block">
+          <div class="explain-icon">🍃</div>
+          <div>
+            <h2>Cos’è il punto di rugiada?</h2>
+            <p>
+              È la <strong>temperatura alla quale l’aria raggiunge la saturazione</strong> e il vapore acqueo può iniziare a condensare. In pratica, ci aiuta a capire <strong>quanta umidità è realmente presente nell’aria</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Come si interpreta?</h2>
+
+      <div class="scale">
+        <div class="scale-row">
+          <div class="scale-range range-1">&lt; 10 °C</div>
+          <div class="scale-content">
+            <strong>Aria secca</strong>
+            <span>Condizioni generalmente molto confortevoli.</span>
+          </div>
+        </div>
+
+        <div class="scale-row">
+          <div class="scale-range range-2">10–15 °C</div>
+          <div class="scale-content">
+            <strong>Confortevole</strong>
+            <span>Aria normalmente piacevole e poco pesante.</span>
+          </div>
+        </div>
+
+        <div class="scale-row">
+          <div class="scale-range range-3">16–18 °C</div>
+          <div class="scale-content">
+            <strong>Umidità percepibile</strong>
+            <span>Si inizia a sentire un po’ di pesantezza nell’aria.</span>
+          </div>
+        </div>
+
+        <div class="scale-row">
+          <div class="scale-range range-4">19–21 °C</div>
+          <div class="scale-content">
+            <strong>Afoso</strong>
+            <span>Con il caldo la sensazione di afa diventa evidente.</span>
+          </div>
+        </div>
+
+        <div class="scale-row">
+          <div class="scale-range range-5">&gt; 21 °C</div>
+          <div class="scale-content">
+            <strong>Molto afoso</strong>
+            <span>Aria molto umida e poco confortevole.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="bottom-links">
+      <a href="articoli.html">← Torna agli articoli</a>
+      <a href="index.html">Vai ai dati in tempo reale →</a>
+    </div>
+
+  </article>
+
+  <footer>
+    Meteo Trezzano sul Naviglio · Approfondimenti meteo
+    <div class="legal-links">
+      <a href="index.html">Home</a>
+      <a href="stazione.html">La stazione</a>
+      <a href="archivio.html">Archivio</a>
+      <a href="articoli.html">Articoli</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="cookie.html">Cookie Policy</a>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>
