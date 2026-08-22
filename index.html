@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K9995K8XYT"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K9995K8XYT');
+  </script>
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-1950023682313786"
+          crossorigin="anonymous"></script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#071b32">
+  <meta name="description" content="Meteo Trezzano sul Naviglio: temperatura attuale rilevata localmente, umidità, minima e massima di oggi, previsioni meteo a 5 giorni e storico delle ultime 24 ore.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://meteotrezzano.it/">
+  <title>Meteo Trezzano sul Naviglio | Temperatura e previsioni</title>
+
+  <style>
+    :root{
+      --navy:#06192f;
+      --navy2:#0b2d4f;
+      --blue:#0d6efd;
+      --blue2:#1577df;
+      --ink:#0e2238;
+      --muted:#66788a;
+      --bg:#f5f8fb;
+      --card:#fff;
+      --line:#e3ebf2;
+      --red:#f11e1e;
+      --shadow:0 10px 26px rgba(18,48,75,.08);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%,rgba(32,119,205,.08),transparent 28%),
+        linear-gradient(180deg,#f8fafc 0%,#f1f5f8 100%);
+    }
+
+    .site-header{
+      background:linear-gradient(135deg,var(--navy),#09284a);
+      color:#fff;
+      box-shadow:0 3px 14px rgba(6,25,47,.18);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+
+    .header-inner{
+      width:min(1320px,calc(100% - 36px));
+      margin:auto;
+      min-height:88px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+    }
+
+    .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    .brand-icon{font-size:42px;line-height:1}
+    .brand-title{font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .brand-sub{font-size:13px;color:rgba(255,255,255,.72);margin-top:5px}
+
+    .top-nav{display:flex;align-items:center;gap:34px}
+    .top-nav a{
+      color:#fff;
+      text-decoration:none;
+      font-size:15px;
+      font-weight:700;
+      padding:31px 4px 25px;
+      border-bottom:4px solid transparent;
+      opacity:.94;
+    }
+    .top-nav a:hover{color:#67b8ff}
+    .top-nav a.active{color:#45a6ff;border-bottom-color:#45a6ff}
+
+    .wrap{
+      width:min(1320px,calc(100% - 36px));
+      margin:auto;
+      padding:26px 0 32px;
+    }
+
+    .dashboard-top{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:18px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:22px;
+      box-shadow:0 12px 32px rgba(18,48,75,.075);
+    }
+
+    .current-card{padding:24px 26px 22px}
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .section-label{
+      color:#1e6fae;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+    }
+
+    .updated{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .temperature-row{
+      display:flex;
+      align-items:center;
+      gap:20px;
+      padding:4px 0 24px;
+    }
+
+    .thermo{
+      width:62px;
+      height:86px;
+      position:relative;
+      flex:0 0 auto;
+    }
+    .thermo::before{
+      content:"";
+      position:absolute;
+      left:24px;top:3px;
+      width:15px;height:58px;
+      border:4px solid var(--blue);
+      border-bottom:0;
+      border-radius:12px 12px 0 0;
+    }
+    .thermo::after{
+      content:"";
+      position:absolute;
+      left:13px;bottom:1px;
+      width:35px;height:35px;
+      border:4px solid var(--blue);
+      border-radius:50%;
+      background:#fff;
+      box-shadow:inset 0 0 0 7px #fff;
+    }
+    .thermo-line{
+      position:absolute;
+      left:30px;bottom:18px;
+      width:7px;height:52px;
+      border-radius:6px;
+      background:var(--blue);
+      z-index:2;
+    }
+
+    .big-temp{
+      font-size:66px;
+      font-weight:800;
+      line-height:.92;
+      letter-spacing:-.06em;
+    }
+    .big-temp small{
+      font-size:.43em;
+      font-weight:650;
+      margin-left:8px;
+      letter-spacing:-.02em;
+    }
+    .temp-caption{margin-top:10px;color:#52687a;font-size:18px;font-weight:650}
+
+    .current-details{
+      border-top:1px solid var(--line);
+      padding-top:22px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+    }
+
+    .detail{
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      gap:13px;
+      min-width:0;
+    }
+    .detail:first-child{padding-left:0}
+    .detail + .detail{border-left:1px solid var(--line)}
+    .detail-icon{font-size:38px;line-height:1}
+    .detail-value{font-size:24px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+    .detail-label{font-size:12px;color:var(--muted);margin-top:4px}
+    .condition-value{font-size:19px;white-space:normal}
+
+    .condition-detail{
+      justify-content:center;
+      text-align:center;
+      gap:0;
+    }
+    .condition-detail .condition-text-wrap{
+      display:none;
+    }
+    .condition-detail .detail-icon{
+      font-size:52px;
+      margin:0 auto;
+    }
+
+    .chart-card{padding:24px 26px 18px}
+    .chart-wrap{
+      height:315px;
+      position:relative;
+    }
+    .chart-tooltip{
+      position:absolute;
+      display:none;
+      z-index:5;
+      pointer-events:none;
+      min-width:108px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(6,25,47,.94);
+      color:#fff;
+      box-shadow:0 7px 20px rgba(6,25,47,.20);
+      font-size:11px;
+      line-height:1.35;
+      text-align:center;
+      transform:translate(-50%,-100%);
+      white-space:nowrap;
+    }
+    .chart-tooltip strong{
+      display:block;
+      font-size:13px;
+      margin-top:2px;
+    }
+    canvas{display:block;width:100%;height:100%}
+    .chart-footer{
+      border-top:1px solid var(--line);
+      margin-top:10px;
+      padding-top:13px;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      gap:10px;
+      min-height:48px;
+    }
+    .chart-footer a{
+      grid-column:2;
+      color:var(--blue);
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+      text-align:center;
+      white-space:nowrap;
+    }
+    .chart-tabs{grid-column:3;justify-self:end;display:flex;gap:6px}
+    .tab{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .tab.active{background:#0d6efd;border-color:#0d6efd;color:#fff}
+
+    
+    .forecast-section{
+      margin-top:18px;
+      background:#fff;
+      border:1px solid rgba(141,162,181,.16);
+      border-radius:22px;
+      box-shadow:0 12px 32px rgba(18,48,75,.06);
+      padding:18px 20px 16px;
+    }
+    .forecast-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+    .forecast-title-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .forecast-title-icon{font-size:19px}
+    .forecast-title h2{
+      margin:0;
+      font-size:15px;
+      color:#1e6fae;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .forecast-source{color:var(--muted);font-size:12px}
+    .forecast-grid{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      width:100%;
+      margin:0 auto;
+    }
+    .forecast-card{
+      background:linear-gradient(180deg,#fbfdff 0%,#f6f9fc 100%);
+      border:1px solid #e4edf4;
+      border-radius:15px;
+      box-shadow:none;
+      padding:13px 8px 12px;
+      text-align:center;
+      min-width:0;
+    }
+    .forecast-day{
+      color:#1e6fae;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .forecast-icon{font-size:29px;line-height:1.1;margin:7px 0 5px}
+    .forecast-temps{
+      font-size:19px;
+      font-weight:800;
+      letter-spacing:-.03em;
+    }
+    .forecast-max{color:var(--red)}
+    .forecast-min{color:#0d6efd}
+    .forecast-desc{
+      margin-top:6px;
+      font-size:12px;
+      font-weight:650;
+      color:#556879;
+      min-height:16px;
+    }
+    .forecast-update{
+      text-align:center;
+      color:var(--muted);
+      font-size:11px;
+      margin-top:12px;
+    }
+    
+
+    .extremes{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+    }
+    .extreme-card{
+      background:#fff;
+      border:1px solid rgba(141,162,181,.18);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:22px 28px;
+      display:flex;
+      align-items:center;
+      gap:22px;
+    }
+    .extreme-icon{
+      width:64px;height:70px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:43px;line-height:1;
+      flex:0 0 auto;
+    }
+    .extreme-min .extreme-icon,
+    .extreme-min .extreme-label{color:#0d6efd}
+    .extreme-max .extreme-icon,
+    .extreme-max .extreme-label{color:var(--red)}
+    .extreme-label{
+      font-size:13px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+    .extreme-value{
+      font-size:31px;
+      font-weight:800;
+      letter-spacing:-.04em;
+      margin-top:3px;
+    }
+    .extreme-time{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .error{
+      display:none;
+      margin-top:14px;
+      padding:12px 14px;
+      border-radius:12px;
+      background:#fff3e6;
+      color:#88591e;
+      font-size:12px;
+    }
+
+    
+    
+    .current-extremes{
+      margin-top:24px;
+      border-top:1px solid var(--line);
+      padding-top:18px;
+    }
+    .current-extremes-title{
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#8291a0;
+      margin:0 0 12px;
+    }
+    .current-extremes-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+    .current-extreme{
+      border-radius:15px;
+      padding:16px 18px 17px;
+      min-height:100px;
+      border:1px solid #e5edf3;
+      background:linear-gradient(180deg,#fbfdff 0%,#f6f9fc 100%);
+      position:relative;
+    }
+    .current-extreme::after{
+      content:"";
+      position:absolute;
+      left:18px;
+      right:18px;
+      top:0;
+      height:2px;
+      border-radius:999px;
+      opacity:.72;
+    }
+    .current-extreme.min::after{background:#6fa9dc;}
+    .current-extreme.max::after{background:#d8988f;}
+    .current-extreme-label{
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      color:#7a8b99;
+    }
+    .current-extreme-value{
+      margin-top:9px;
+      font-size:29px;
+      font-weight:780;
+      letter-spacing:-.035em;
+      line-height:1;
+      color:#10283d;
+    }
+    .current-extreme-time{
+      margin-top:9px;
+      color:#8393a0;
+      font-size:11px;
+    }
+    
+    
+
+
+    .seo-intro{
+      margin:12px 4px 0;
+      color:#7f8f9d;
+      font-size:11px;
+      line-height:1.55;
+      text-align:center;
+    }
+
+    footer{
+      text-align:center;
+      color:#7d8b98;
+      font-size:11px;
+      padding:26px 10px 8px;
+      line-height:1.7;
+    }
+    footer a{color:inherit}
+    .legal-links{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:7px}
+
+    @media(max-width:980px){
+      .dashboard-top{grid-template-columns:1fr}
+      .forecast-grid{
+        display:flex;
+        overflow-x:auto;
+        gap:10px;
+        scrollbar-width:none;
+        padding-bottom:3px;
+      }
+      .forecast-grid::-webkit-scrollbar{display:none}
+      .forecast-card{flex:0 0 150px;min-width:150px}
+    }
+
+    @media(max-width:720px){
+      .header-inner{
+        width:min(100% - 20px,1320px);
+        min-height:auto;
+        padding:13px 0 0;
+        display:block;
+      }
+      .brand{padding-bottom:10px}
+      .brand-icon{font-size:34px}
+      .brand-title{font-size:23px}
+      .brand-sub{font-size:11px}
+      .top-nav{
+        overflow-x:auto;
+        gap:20px;
+        scrollbar-width:none;
+      }
+      .top-nav::-webkit-scrollbar{display:none}
+      .top-nav a{
+        white-space:nowrap;
+        padding:11px 2px 10px;
+        font-size:13px;
+        flex:0 0 auto;
+      }
+      .wrap{width:min(100% - 16px,1320px);padding-top:14px}
+      .current-card,.chart-card{padding:18px}
+      .card-head{align-items:flex-start;display:block}
+      .updated{margin-top:6px}
+      .temperature-row{gap:13px}
+      .thermo{transform:scale(.85);transform-origin:left center;width:50px}
+      .big-temp{font-size:56px}
+      .temp-caption{font-size:15px}
+      .current-details{grid-template-columns:1fr;gap:0}
+      .current-extremes-grid{grid-template-columns:1fr;gap:10px}
+      .detail{padding:13px 0}
+      .detail + .detail{border-left:0;border-top:1px solid var(--line)}
+      .chart-wrap{height:260px}
+      .chart-footer{
+        grid-template-columns:1fr;
+        justify-items:center;
+      }
+      .chart-footer a{grid-column:1;grid-row:2;white-space:normal}
+      .chart-tabs{grid-column:1;grid-row:1;justify-self:center}
+      .extremes{grid-template-columns:1fr;gap:12px}
+      .extreme-card{padding:18px}
+    }
+
+    @media(max-width:440px){
+      .big-temp{font-size:49px}
+      .forecast-temps{font-size:19px}
+      .forecast-icon{font-size:30px}
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">🌤️</div>
+      <div>
+        <div class="brand-title">Meteo Trezzano</div>
+        <div class="brand-sub">Stazione meteo amatoriale</div>
+      </div>
+    </div>
+
+    <nav class="top-nav" aria-label="Navigazione principale">
+      <a class="active" href="index.html">Home</a>
+      <a href="stazione.html">La stazione</a>
+      <a href="archivio.html">Archivio</a>
+      <a href="articoli.html">Articoli</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="dashboard-top">
+
+    <article class="card current-card">
+      <div class="card-head">
+        <div class="section-label">Dati in tempo reale</div>
+        <div class="updated">Ultimo aggiornamento: <span id="updatedAt">--</span></div>
+      </div>
+
+      <div class="temperature-row">
+        <div class="thermo"><div class="thermo-line"></div></div>
+        <div>
+          <div class="big-temp"><span id="temperature">--</span><small>°C</small></div>
+          <div class="temp-caption">Temperatura</div>
+        </div>
+      </div>
+
+      <div class="current-details">
+        <div class="detail">
+          <div class="detail-icon">💧</div>
+          <div>
+            <div class="detail-value" id="humidity">--</div>
+            <div class="detail-label">Umidità</div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="detail-icon">🍃</div>
+          <div>
+            <div class="detail-value" id="dewPoint">--</div>
+            <div class="detail-label">Punto di rugiada</div>
+          </div>
+        </div>
+
+        <div class="detail condition-detail">
+          <div class="detail-icon" id="conditionIcon">☁️</div>
+          <div class="condition-text-wrap">
+            <div class="detail-value condition-value" id="condition">--</div>
+            <div class="detail-label">Condizione</div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="current-extremes">
+        <div class="current-extremes-title">Estremi termici di oggi</div>
+        <div class="current-extremes-grid">
+          <article class="current-extreme min">
+            <div class="current-extreme-label">Minima di oggi</div>
+            <div class="current-extreme-value" id="todayMin">--</div>
+            <div class="current-extreme-time" id="todayMinTime">--</div>
+          </article>
+
+          <article class="current-extreme max">
+            <div class="current-extreme-label">Massima di oggi</div>
+            <div class="current-extreme-value" id="todayMax">--</div>
+            <div class="current-extreme-time" id="todayMaxTime">--</div>
+          </article>
+        </div>
+      </div>
+    
+
+      <div class="error" id="errorBox">Impossibile aggiornare i dati in questo momento.</div>
+    </article>
+
+    <article class="card chart-card">
+      <div class="card-head">
+        <div class="section-label" id="chartTitle">Temperatura – ultime 24 ore</div>
+        <div class="updated" id="chartUnit">°C</div>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="weatherChart"></canvas>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+
+      <div class="chart-footer">
+        <a href="archivio.html">Vai all'archivio per altri dati storici →</a>
+        <div class="chart-tabs">
+          <button class="tab active" data-chart="temp">Temperatura</button>
+          <button class="tab" data-chart="hum">Umidità</button>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="forecast-section">
+    <div class="forecast-title">
+      <div class="forecast-title-left">
+        <div class="forecast-title-icon">🗓️</div>
+        <h2>Previsioni prossimi 5 giorni</h2>
+      </div>
+      <div class="forecast-source">Fonte: Open-Meteo</div>
+    </div>
+
+    <div class="forecast-grid" id="forecastGrid">
+      <div class="forecast-card">
+        <div class="forecast-day">--</div>
+        <div class="forecast-icon">·</div>
+        <div class="forecast-temps">--° / --°</div>
+        <div class="forecast-desc">Caricamento…</div>
+      </div>
+    </div>
+
+    <div class="forecast-update">Previsioni aggiornate: <span id="forecastUpdated">--</span></div>
+  </section>
+
+
+  <p class="seo-intro">
+    Temperatura attuale a Trezzano sul Naviglio rilevata dalla stazione meteo locale, con umidità, minima e massima giornaliera, andamento delle ultime 24 ore e previsioni dei prossimi giorni.
+  </p>
+
+  <footer>
+    Temperatura e umidità: sensore locale SwitchBot · Previsioni:
+    <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Progetto indipendente
+    <div class="legal-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="cookie.html">Cookie Policy</a>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+const LAT = 45.424;
+const LON = 9.0675;
+
+const nf1 = new Intl.NumberFormat("it-IT", {minimumFractionDigits:1, maximumFractionDigits:1});
+const nf0 = new Intl.NumberFormat("it-IT", {maximumFractionDigits:0});
+
+let HISTORY = [];
+let chartMode = "temp";
+let chartState = null;
+let hoverIndex = null;
+
+function calculateDewPoint(temp, humidity){
+  if(temp == null || humidity == null || humidity <= 0) return null;
+  const a = 17.62, b = 243.12;
+  const gamma = Math.log(humidity/100) + (a*temp)/(b+temp);
+  return (b*gamma)/(a-gamma);
+}
+
+function weatherInfo(code){
+  const map = {
+    0:["☀️","Sereno"],
+    1:["🌤️","Prevalentemente sereno"],
+    2:["⛅","Parzialmente nuvoloso"],
+    3:["☁️","Coperto"],
+    45:["🌫️","Nebbia"],
+    48:["🌫️","Nebbia con brina"],
+    51:["🌦️","Pioviggine debole"],
+    53:["🌦️","Pioviggine"],
+    55:["🌧️","Pioviggine intensa"],
+    61:["🌦️","Pioggia debole"],
+    63:["🌧️","Pioggia"],
+    65:["🌧️","Pioggia intensa"],
+    71:["🌨️","Neve debole"],
+    73:["🌨️","Neve"],
+    75:["❄️","Neve intensa"],
+    80:["🌦️","Rovesci deboli"],
+    81:["🌧️","Rovesci"],
+    82:["🌧️","Rovesci intensi"],
+    95:["⛈️","Temporale"],
+    96:["⛈️","Temporale con grandine"],
+    99:["⛈️","Temporale forte con grandine"]
+  };
+  return map[code] || ["🌡️","Condizioni attuali"];
+}
+
+function getTodayItaly(){
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone:"Europe/Rome",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit"
+  }).formatToParts(new Date());
+
+  const p = {};
+  parts.forEach(x => p[x.type] = x.value);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+function formatTimestampItaly(value){
+  if(!value) return "--";
+  const d = new Date(value);
+  return d.toLocaleString("it-IT", {
+    timeZone:"Europe/Rome",
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+async function loadEverything(){
+  try{
+    const params = new URLSearchParams({
+      latitude:LAT,
+      longitude:LON,
+      timezone:"Europe/Rome",
+      current:"weather_code",
+      daily:["weather_code","temperature_2m_max","temperature_2m_min"].join(","),
+      forecast_days:"6"
+    });
+
+    const [sensorResponse, historyResponse, dailyResponse, forecastResponse] = await Promise.all([
+      fetch("weather-data.json?t="+Date.now(), {cache:"no-store"}),
+      fetch("weather-history.json?t="+Date.now(), {cache:"no-store"}),
+      fetch("weather-daily.json?t="+Date.now(), {cache:"no-store"}),
+      fetch("https://api.open-meteo.com/v1/forecast?"+params.toString(), {cache:"no-store"})
+    ]);
+
+    if(!sensorResponse.ok) throw new Error("weather-data.json");
+    if(!historyResponse.ok) throw new Error("weather-history.json");
+    if(!dailyResponse.ok) throw new Error("weather-daily.json");
+    if(!forecastResponse.ok) throw new Error("Open-Meteo");
+
+    const sensor = await sensorResponse.json();
+    HISTORY = await historyResponse.json();
+    const daily = await dailyResponse.json();
+    const forecast = await forecastResponse.json();
+
+    renderCurrent(sensor, forecast);
+    renderForecast(forecast);
+    renderTodayExtremes(daily);
+    drawChart();
+
+    document.getElementById("errorBox").style.display = "none";
+  }catch(err){
+    console.error(err);
+    document.getElementById("errorBox").style.display = "block";
+  }
+}
+
+function renderCurrent(sensor, forecast){
+  document.getElementById("temperature").textContent = nf1.format(sensor.temperature);
+  document.getElementById("humidity").textContent = nf0.format(sensor.humidity) + "%";
+
+  const dew = calculateDewPoint(sensor.temperature, sensor.humidity);
+  document.getElementById("dewPoint").textContent = dew == null ? "--" : nf1.format(dew) + " °C";
+
+  document.getElementById("updatedAt").textContent = formatTimestampItaly(sensor.updatedAt);
+
+  if(forecast && forecast.current){
+    const info = weatherInfo(forecast.current.weather_code);
+    document.getElementById("conditionIcon").textContent = info[0];
+    document.getElementById("condition").textContent = info[1];
+  }
+}
+
+function renderForecast(forecast){
+  if(!forecast || !forecast.daily) return;
+
+  const d = forecast.daily;
+
+  document.getElementById("forecastGrid").innerHTML = d.time.slice(1,6).map((date,offset)=>{
+    const i = offset + 1;
+    const info = weatherInfo(d.weather_code[i]);
+    const dt = new Date(date+"T12:00:00");
+
+    const label = dt.toLocaleDateString("it-IT", {
+      weekday:"short",
+      day:"2-digit"
+    });
+
+    return `
+      <article class="forecast-card">
+        <div class="forecast-day">${label}</div>
+        <div class="forecast-icon">${info[0]}</div>
+        <div class="forecast-temps">
+          <span class="forecast-max">${nf0.format(d.temperature_2m_max[i])}°</span>
+          <span> / </span>
+          <span class="forecast-min">${nf0.format(d.temperature_2m_min[i])}°</span>
+        </div>
+        <div class="forecast-desc">${info[1]}</div>
+      </article>
+    `;
+  }).join("");
+
+  document.getElementById("forecastUpdated").textContent =
+    new Date().toLocaleString("it-IT", {
+      timeZone:"Europe/Rome",
+      day:"2-digit",
+      month:"2-digit",
+      year:"numeric",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+}
+
+function renderTodayExtremes(daily){
+  if(!Array.isArray(daily)) return;
+
+  const today = daily.find(item => item.date === getTodayItaly());
+  if(!today) return;
+
+  document.getElementById("todayMin").textContent = nf1.format(today.min) + " °C";
+  document.getElementById("todayMinTime").textContent = today.minTime ? "alle " + today.minTime : "--";
+
+  document.getElementById("todayMax").textContent = nf1.format(today.max) + " °C";
+  document.getElementById("todayMaxTime").textContent = today.maxTime ? "alle " + today.maxTime : "--";
+}
+
+function getLast24Hours(){
+  const now = Date.now();
+  const start = now - 24*60*60*1000;
+
+  return HISTORY.filter(item=>{
+    const ts = new Date(item.time).getTime();
+    return Number.isFinite(ts) && ts >= start && ts <= now;
+  }).sort((a,b)=>new Date(a.time)-new Date(b.time));
+}
+
+const canvas = document.getElementById("weatherChart");
+const ctx = canvas.getContext("2d");
+
+function drawChart(activeIndex = hoverIndex){
+  const rows = getLast24Hours();
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = Math.max(620, Math.round(rect.width*dpr));
+  canvas.height = Math.round(rect.height*dpr);
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.clearRect(0,0,w,h);
+
+  document.getElementById("chartTitle").textContent =
+    chartMode === "temp" ? "Temperatura – ultime 24 ore" : "Umidità – ultime 24 ore";
+
+  document.getElementById("chartUnit").textContent =
+    chartMode === "temp" ? "°C" : "%";
+
+  if(!rows.length){
+    ctx.fillStyle="#7f8e9a";
+    ctx.font=`${13*dpr}px system-ui`;
+    ctx.textAlign="center";
+    ctx.fillText("Storico non ancora disponibile",w/2,h/2);
+    return;
+  }
+
+  const plotted = rows.map(r => ({
+    ...r,
+    value: chartMode === "temp" ? Number(r.temperature) : Number(r.humidity)
+  })).filter(r => Number.isFinite(r.value));
+
+  if(!plotted.length) return;
+
+  const values = plotted.map(r => r.value);
+
+  const left=54*dpr;
+  const right=18*dpr;
+  const top=14*dpr;
+  const bottom=18*dpr;
+
+  let min = Math.min(...values);
+  let max = Math.max(...values);
+
+  if(min === max){
+    min -= chartMode === "temp" ? 1 : 3;
+    max += chartMode === "temp" ? 1 : 3;
+  }
+
+  const extra = Math.max((max-min)*.18, chartMode === "temp" ? .6 : 2);
+  min -= extra;
+  max += extra;
+
+  ctx.font = `${11*dpr}px system-ui`;
+  ctx.textBaseline = "middle";
+
+  for(let i=0;i<5;i++){
+    const y = top + i*(h-top-bottom)/4;
+    const val = max - i*(max-min)/4;
+
+    ctx.strokeStyle="#e8eef3";
+    ctx.lineWidth=1*dpr;
+    ctx.beginPath();
+    ctx.moveTo(left,y);
+    ctx.lineTo(w-right,y);
+    ctx.stroke();
+
+    ctx.fillStyle="#6f8191";
+    ctx.textAlign="right";
+    ctx.fillText(
+      chartMode === "temp" ? nf0.format(val)+" °C" : nf0.format(val)+"%",
+      left-9*dpr,
+      y
+    );
+  }
+
+  const firstTime = new Date(plotted[0].time).getTime();
+  const lastTime = new Date(plotted[plotted.length-1].time).getTime();
+  const timeRange = Math.max(lastTime-firstTime,1);
+
+  const pts = plotted.map(row=>{
+    const ts = new Date(row.time).getTime();
+    return {
+      x:left+((ts-firstTime)/timeRange)*(w-left-right),
+      y:h-bottom-((row.value-min)/(max-min))*(h-top-bottom)
+    };
+  });
+
+  const fill = ctx.createLinearGradient(0,top,0,h-bottom);
+  fill.addColorStop(0,"rgba(13,110,253,.17)");
+  fill.addColorStop(1,"rgba(13,110,253,.02)");
+
+  if(pts.length>1){
+    ctx.beginPath();
+    pts.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
+    ctx.lineTo(pts[pts.length-1].x,h-bottom);
+    ctx.lineTo(pts[0].x,h-bottom);
+    ctx.closePath();
+    ctx.fillStyle=fill;
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  pts.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
+  ctx.strokeStyle="#0d6efd";
+  ctx.lineWidth=2.4*dpr;
+  ctx.lineJoin="round";
+  ctx.lineCap="round";
+  ctx.stroke();
+
+  pts.forEach((pt,i)=>{
+    if(i % Math.max(1,Math.floor(pts.length/20)) !== 0 && i !== pts.length-1) return;
+    ctx.beginPath();
+    ctx.arc(pt.x,pt.y,2.6*dpr,0,Math.PI*2);
+    ctx.fillStyle="#fff";
+    ctx.fill();
+    ctx.lineWidth=1.6*dpr;
+    ctx.strokeStyle="#0d6efd";
+    ctx.stroke();
+  });
+
+  chartState = { plotted, pts, dpr, left, right, top, bottom, w, h };
+
+  if(activeIndex != null && pts[activeIndex]){
+    const pt = pts[activeIndex];
+
+    ctx.save();
+
+    ctx.strokeStyle="rgba(13,110,253,.22)";
+    ctx.lineWidth=1*dpr;
+    ctx.setLineDash([4*dpr,4*dpr]);
+    ctx.beginPath();
+    ctx.moveTo(pt.x,top);
+    ctx.lineTo(pt.x,h-bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.arc(pt.x,pt.y,5*dpr,0,Math.PI*2);
+    ctx.fillStyle="#ffffff";
+    ctx.fill();
+    ctx.lineWidth=2.5*dpr;
+    ctx.strokeStyle="#0d6efd";
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+
+const chartTooltip = document.getElementById("chartTooltip");
+const chartWrap = canvas.closest(".chart-wrap");
+
+function hideChartTooltip(){
+  hoverIndex = null;
+  chartTooltip.style.display = "none";
+  drawChart(null);
+}
+
+canvas.addEventListener("mousemove", event=>{
+  if(!chartState || !chartState.pts || !chartState.pts.length) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+
+  let nearestIndex = 0;
+  let nearestDistance = Infinity;
+
+  chartState.pts.forEach((pt,i)=>{
+    const cssX = pt.x / chartState.dpr;
+    const distance = Math.abs(cssX - mouseX);
+    if(distance < nearestDistance){
+      nearestDistance = distance;
+      nearestIndex = i;
+    }
+  });
+
+  hoverIndex = nearestIndex;
+  drawChart(nearestIndex);
+
+  const row = chartState.plotted[nearestIndex];
+  const pt = chartState.pts[nearestIndex];
+  const date = new Date(row.time);
+
+  const timeLabel = date.toLocaleTimeString("it-IT", {
+    timeZone:"Europe/Rome",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+
+  const valueLabel = chartMode === "temp"
+    ? nf1.format(row.value) + " °C"
+    : nf0.format(row.value) + "%";
+
+  chartTooltip.innerHTML = `${timeLabel}<strong>${valueLabel}</strong>`;
+  chartTooltip.style.display = "block";
+
+  const wrapWidth = chartWrap.clientWidth;
+  const tooltipHalf = Math.max(chartTooltip.offsetWidth / 2, 55);
+  let x = pt.x / chartState.dpr;
+  x = Math.max(tooltipHalf + 6, Math.min(wrapWidth - tooltipHalf - 6, x));
+
+  let y = pt.y / chartState.dpr - 10;
+  if(y < chartTooltip.offsetHeight + 8){
+    y = pt.y / chartState.dpr + chartTooltip.offsetHeight + 22;
+  }
+
+  chartTooltip.style.left = x + "px";
+  chartTooltip.style.top = y + "px";
+});
+
+canvas.addEventListener("mouseleave", hideChartTooltip);
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    chartMode=btn.dataset.chart;
+    hoverIndex = null;
+    chartTooltip.style.display = "none";
+    drawChart();
+  });
+});
+
+window.addEventListener("resize",()=>requestAnimationFrame(drawChart));
+
+loadEverything();
+setInterval(loadEverything,10*60*1000);
+</script>
+
+</body>
+</html>
