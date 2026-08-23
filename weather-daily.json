@@ -27,8 +27,8 @@
     "date": "2026-08-23",
     "min": 17.3,
     "minTime": "02:00",
-    "max": 23.0,
-    "maxTime": "09:30",
-    "samples": 68
+    "max": 23.2,
+    "maxTime": "10:00",
+    "samples": 69
   }
 ]
