@@ -1,0 +1,204 @@
+name: Archivio preciso - medie 10 minuti
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: archive-precision
+  cancel-in-progress: false
+
+jobs:
+  archive-precision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    env:
+      SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
+      SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
+      DEVICE_ID: E77601C60C32
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Campiona ogni 2 minuti e aggiorna archivio preciso
+        run: |
+          python - <<'PY'
+          import os, json, time, uuid, hmac, hashlib, base64, urllib.request
+          from pathlib import Path
+          from datetime import datetime, timedelta, timezone
+          from zoneinfo import ZoneInfo
+
+          TOKEN = os.environ["SWITCHBOT_TOKEN"]
+          SECRET = os.environ["SWITCHBOT_SECRET"]
+          DEVICE_ID = os.environ["DEVICE_ID"]
+
+          ROME = ZoneInfo("Europe/Rome")
+          START_DATE = "2026-08-24"
+          API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
+
+          today_rome = datetime.now(ROME).strftime("%Y-%m-%d")
+          if today_rome < START_DATE:
+              print(f"Nuova modalità Archivio non ancora attiva. Partenza: {START_DATE}")
+              raise SystemExit(0)
+
+          def read_json(path, default):
+              p = Path(path)
+              if not p.exists():
+                  return default
+              try:
+                  return json.loads(p.read_text(encoding="utf-8"))
+              except Exception:
+                  return default
+
+          def write_json(path, data):
+              Path(path).write_text(
+                  json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8"
+              )
+
+          def get_status():
+              nonce = str(uuid.uuid4())
+              t = str(int(time.time() * 1000))
+              sign = base64.b64encode(
+                  hmac.new(
+                      SECRET.encode(),
+                      (TOKEN + t + nonce).encode(),
+                      hashlib.sha256
+                  ).digest()
+              ).decode()
+
+              req = urllib.request.Request(
+                  API_URL,
+                  headers={
+                      "Authorization": TOKEN,
+                      "sign": sign,
+                      "nonce": nonce,
+                      "t": t,
+                      "Content-Type": "application/json; charset=utf8"
+                  }
+              )
+
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  payload = json.load(response)
+
+              if payload.get("statusCode") != 100:
+                  raise RuntimeError(payload.get("message") or "Errore SwitchBot")
+
+              body = payload["body"]
+              return {
+                  "temperature": float(body["temperature"]),
+                  "humidity": float(body["humidity"]),
+                  "capturedAt": datetime.now(timezone.utc)
+              }
+
+          # 5 rilevazioni nello stesso slot di 10 minuti:
+          # circa minuto 0, 2, 4, 6, 8.
+          samples = []
+          for i in range(5):
+              row = get_status()
+              samples.append(row)
+              print(
+                  f"{i+1}/5 - {row['temperature']:.1f} °C - "
+                  f"{row['humidity']:.0f}% - {row['capturedAt'].isoformat()}"
+              )
+              if i < 4:
+                  time.sleep(120)
+
+          avg_temp = round(sum(x["temperature"] for x in samples) / 5, 2)
+          avg_humidity = round(sum(x["humidity"] for x in samples) / 5, 1)
+
+          first_local = samples[0]["capturedAt"].astimezone(ROME)
+          block_start = first_local.replace(
+              minute=(first_local.minute // 10) * 10,
+              second=0,
+              microsecond=0
+          )
+          block_end = block_start + timedelta(minutes=10)
+
+          slot = {
+              "time": block_end.astimezone(timezone.utc).isoformat().replace("+00:00","Z"),
+              "date": block_end.astimezone(ROME).strftime("%Y-%m-%d"),
+              "localTime": block_end.astimezone(ROME).strftime("%H:%M"),
+              "temperature": avg_temp,
+              "humidity": avg_humidity,
+              "samples": 5,
+              "method": "mean_5_samples_2min"
+          }
+
+          # Storico permanente delle medie a 10 minuti.
+          tenmin = read_json("weather-archive-10min.json", [])
+          if not isinstance(tenmin, list):
+              tenmin = []
+
+          tenmin = [
+              x for x in tenmin
+              if not (isinstance(x, dict) and x.get("time") == slot["time"])
+          ]
+          tenmin.append(slot)
+          tenmin.sort(key=lambda x: x.get("time",""))
+          write_json("weather-archive-10min.json", tenmin)
+
+          # Archivio giornaliero:
+          # minima = la media a 10 min più bassa del giorno
+          # massima = la media a 10 min più alta del giorno
+          daily = read_json("weather-archive-daily.json", [])
+          if not isinstance(daily, list):
+              daily = []
+
+          day = next(
+              (x for x in daily if isinstance(x, dict) and x.get("date") == slot["date"]),
+              None
+          )
+
+          if day is None:
+              day = {
+                  "date": slot["date"],
+                  "min": avg_temp,
+                  "minTime": slot["localTime"],
+                  "max": avg_temp,
+                  "maxTime": slot["localTime"],
+                  "method": "10min_mean_of_5_samples_every_2min"
+              }
+              daily.append(day)
+          else:
+              if avg_temp < float(day["min"]):
+                  day["min"] = avg_temp
+                  day["minTime"] = slot["localTime"]
+
+              if avg_temp > float(day["max"]):
+                  day["max"] = avg_temp
+                  day["maxTime"] = slot["localTime"]
+
+              day["method"] = "10min_mean_of_5_samples_every_2min"
+
+          daily.sort(key=lambda x: x.get("date",""))
+          write_json("weather-archive-daily.json", daily)
+
+          print(
+              f"Slot {block_start.strftime('%H:%M')}–{block_end.strftime('%H:%M')} "
+              f"=> media {avg_temp:.2f} °C | "
+              f"min/max archivio aggiornati."
+          )
+          PY
+
+      - name: Commit dati archivio preciso
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add weather-archive-10min.json weather-archive-daily.json
+
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica da salvare."
+            exit 0
+          fi
+
+          git commit -m "Aggiorna archivio preciso - medie 10 minuti"
+          git pull --rebase origin main
+          git push origin main
