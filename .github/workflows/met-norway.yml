@@ -1,0 +1,53 @@
+name: Aggiorna previsioni MET Norway
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17,47 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scarica previsioni MET Norway
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.request
+
+          url = "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=45.42&lon=9.06"
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "MeteoTrezzano/1.0 https://meteotrezzano.it/"
+              }
+          )
+
+          with urllib.request.urlopen(req, timeout=30) as r:
+              data = json.load(r)
+
+          with open("met-forecast.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+          PY
+
+      - name: Salva previsioni nel repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add met-forecast.json
+
+          if git diff --cached --quiet; then
+            echo "Nessun aggiornamento."
+            exit 0
+          fi
+
+          git commit -m "Aggiorna previsioni MET Norway"
+          git push
