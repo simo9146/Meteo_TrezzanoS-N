@@ -1,0 +1,368 @@
+name: Update SwitchBot weather data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: switchbot-weather-update
+  cancel-in-progress: false
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    env:
+      SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
+      SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
+      DEVICE_ID: E77601C60C32
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Aggiorna Home e raccogli i campioni per l'Archivio
+        run: |
+          python - <<'PY'
+          import os
+          import json
+          import time
+          import uuid
+          import hmac
+          import hashlib
+          import base64
+          import urllib.request
+          import subprocess
+          from pathlib import Path
+          from datetime import datetime, timedelta, timezone
+          from zoneinfo import ZoneInfo
+
+          TOKEN = os.environ["SWITCHBOT_TOKEN"]
+          SECRET = os.environ["SWITCHBOT_SECRET"]
+          DEVICE_ID = os.environ["DEVICE_ID"]
+
+          ROME = ZoneInfo("Europe/Rome")
+          API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
+
+          def read_json(path, default):
+              p = Path(path)
+              if not p.exists():
+                  return default
+              try:
+                  return json.loads(p.read_text(encoding="utf-8"))
+              except Exception:
+                  return default
+
+          def write_json(path, data):
+              Path(path).write_text(
+                  json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8"
+              )
+
+          def run_git(*args):
+              subprocess.run(["git", *args], check=True)
+
+          def commit_and_push(files, message):
+              run_git("config", "user.name", "github-actions[bot]")
+              run_git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+              run_git("add", *files)
+
+              changed = subprocess.run(
+                  ["git", "diff", "--cached", "--quiet"]
+              ).returncode != 0
+
+              if not changed:
+                  print("Nessuna modifica da salvare:", message)
+                  return
+
+              run_git("commit", "-m", message)
+              run_git("pull", "--rebase", "origin", "main")
+              run_git("push", "origin", "main")
+
+          def switchbot_status():
+              nonce = str(uuid.uuid4())
+              t = str(int(time.time() * 1000))
+              message = TOKEN + t + nonce
+              sign = base64.b64encode(
+                  hmac.new(
+                      SECRET.encode("utf-8"),
+                      message.encode("utf-8"),
+                      hashlib.sha256
+                  ).digest()
+              ).decode("utf-8")
+
+              req = urllib.request.Request(
+                  API_URL,
+                  headers={
+                      "Authorization": TOKEN,
+                      "sign": sign,
+                      "nonce": nonce,
+                      "t": t,
+                      "Content-Type": "application/json; charset=utf8"
+                  }
+              )
+
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  payload = json.load(response)
+
+              if payload.get("statusCode") != 100:
+                  raise RuntimeError(
+                      f"SwitchBot API error: {payload.get('message')}"
+                  )
+
+              body = payload.get("body") or {}
+
+              return {
+                  "temperature": float(body["temperature"]),
+                  "humidity": float(body["humidity"]),
+                  "battery": body.get("battery"),
+                  "capturedAt": datetime.now(timezone.utc)
+              }
+
+          def parse_iso(value):
+              try:
+                  return datetime.fromisoformat(
+                      str(value).replace("Z", "+00:00")
+                  )
+              except Exception:
+                  return None
+
+          # ============================================================
+          # 1) HOME
+          # Una sola lettura puntuale all'inizio del run.
+          # È quella usata da Home, grafico e min/max della Home.
+          # ============================================================
+
+          samples = []
+
+          first = switchbot_status()
+          samples.append(first)
+
+          print(
+              f"HOME - lettura puntuale: "
+              f"{first['temperature']:.1f} °C - "
+              f"{first['humidity']:.0f}% - "
+              f"{first['capturedAt'].isoformat()}"
+          )
+
+          current_data = {
+              "temperature": first["temperature"],
+              "humidity": first["humidity"],
+              "updatedAt": first["capturedAt"].isoformat().replace("+00:00", "Z")
+          }
+
+          if first["battery"] is not None:
+              current_data["battery"] = first["battery"]
+
+          write_json("weather-data.json", current_data)
+
+          # Storico Home: punto reale ogni ~10 minuti.
+          history = read_json("weather-history.json", [])
+          if not isinstance(history, list):
+              history = []
+
+          home_entry = {
+              "time": first["capturedAt"].isoformat().replace("+00:00", "Z"),
+              "temperature": first["temperature"],
+              "humidity": first["humidity"]
+          }
+
+          history.append(home_entry)
+
+          cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+          clean_history = []
+
+          for row in history:
+              if not isinstance(row, dict):
+                  continue
+              dt = parse_iso(row.get("time"))
+              if dt is not None and dt >= cutoff:
+                  clean_history.append(row)
+
+          clean_history.sort(key=lambda x: x.get("time", ""))
+          write_json("weather-history.json", clean_history)
+
+          # Min/max Home: valori PUNTUALI.
+          daily = read_json("weather-daily.json", [])
+          if not isinstance(daily, list):
+              daily = []
+
+          local_first = first["capturedAt"].astimezone(ROME)
+          home_date = local_first.strftime("%Y-%m-%d")
+          home_time = local_first.strftime("%H:%M")
+          home_temp = first["temperature"]
+
+          today = next(
+              (
+                  row for row in daily
+                  if isinstance(row, dict) and row.get("date") == home_date
+              ),
+              None
+          )
+
+          if today is None:
+              today = {
+                  "date": home_date,
+                  "min": home_temp,
+                  "minTime": home_time,
+                  "max": home_temp,
+                  "maxTime": home_time
+              }
+              daily.append(today)
+          else:
+              if home_temp < float(today.get("min", home_temp)):
+                  today["min"] = home_temp
+                  today["minTime"] = home_time
+
+              if home_temp > float(today.get("max", home_temp)):
+                  today["max"] = home_temp
+                  today["maxTime"] = home_time
+
+              # La Home resta volutamente con il metodo puntuale.
+              today.pop("method", None)
+
+          daily.sort(key=lambda x: x.get("date", ""))
+          write_json("weather-daily.json", daily)
+
+          # Pubblica subito i dati Home: non aspettiamo gli 8 minuti
+          # necessari per completare la media dell'Archivio.
+          commit_and_push(
+              [
+                  "weather-data.json",
+                  "weather-history.json",
+                  "weather-daily.json"
+              ],
+              "Update SwitchBot weather data"
+          )
+
+          # ============================================================
+          # 2) ARCHIVIO PRECISO
+          # Il primo campione è già quello preso sopra.
+          # Aggiungiamo altri 4 campioni a distanza di 2 minuti:
+          # totale 5 campioni in circa 10 minuti.
+          # ============================================================
+
+          for i in range(4):
+              time.sleep(120)
+              reading = switchbot_status()
+              samples.append(reading)
+
+              print(
+                  f"ARCHIVIO - campione {i+2}/5: "
+                  f"{reading['temperature']:.1f} °C - "
+                  f"{reading['humidity']:.0f}% - "
+                  f"{reading['capturedAt'].isoformat()}"
+              )
+
+          avg_temp = round(
+              sum(x["temperature"] for x in samples) / len(samples), 2
+          )
+          avg_humidity = round(
+              sum(x["humidity"] for x in samples) / len(samples), 1
+          )
+
+          first_local = samples[0]["capturedAt"].astimezone(ROME)
+
+          block_start = first_local.replace(
+              minute=(first_local.minute // 10) * 10,
+              second=0,
+              microsecond=0
+          )
+          block_end = block_start + timedelta(minutes=10)
+
+          # La data appartiene allo slot che INIZIA in quel giorno.
+          # In questo modo lo slot 23:50-00:00 resta correttamente
+          # attribuito al giorno che sta terminando.
+          archive_date = block_start.strftime("%Y-%m-%d")
+          archive_time = block_end.strftime("%H:%M")
+
+          slot = {
+              "time": block_end.astimezone(timezone.utc)
+                               .isoformat()
+                               .replace("+00:00", "Z"),
+              "date": archive_date,
+              "localTime": archive_time,
+              "temperature": avg_temp,
+              "humidity": avg_humidity,
+              "samples": len(samples),
+              "method": "mean_5_samples_2min"
+          }
+
+          # Storico permanente delle medie a 10 minuti.
+          tenmin = read_json("weather-archive-10min.json", [])
+          if not isinstance(tenmin, list):
+              tenmin = []
+
+          tenmin = [
+              row for row in tenmin
+              if not (
+                  isinstance(row, dict)
+                  and row.get("time") == slot["time"]
+              )
+          ]
+
+          tenmin.append(slot)
+          tenmin.sort(key=lambda x: x.get("time", ""))
+          write_json("weather-archive-10min.json", tenmin)
+
+          # Min/max Archivio:
+          # minima = media di 10 minuti più bassa del giorno
+          # massima = media di 10 minuti più alta del giorno.
+          archive_daily = read_json("weather-archive-daily.json", [])
+          if not isinstance(archive_daily, list):
+              archive_daily = []
+
+          day = next(
+              (
+                  row for row in archive_daily
+                  if isinstance(row, dict)
+                  and row.get("date") == archive_date
+              ),
+              None
+          )
+
+          if day is None:
+              day = {
+                  "date": archive_date,
+                  "min": avg_temp,
+                  "minTime": archive_time,
+                  "max": avg_temp,
+                  "maxTime": archive_time,
+                  "method": "10min_mean_of_5_samples_every_2min"
+              }
+              archive_daily.append(day)
+          else:
+              if avg_temp < float(day.get("min", avg_temp)):
+                  day["min"] = avg_temp
+                  day["minTime"] = archive_time
+
+              if avg_temp > float(day.get("max", avg_temp)):
+                  day["max"] = avg_temp
+                  day["maxTime"] = archive_time
+
+              day["method"] = "10min_mean_of_5_samples_every_2min"
+
+          archive_daily.sort(key=lambda x: x.get("date", ""))
+          write_json("weather-archive-daily.json", archive_daily)
+
+          print(
+              f"ARCHIVIO - slot "
+              f"{block_start.strftime('%H:%M')}-"
+              f"{block_end.strftime('%H:%M')} => "
+              f"{avg_temp:.2f} °C ({len(samples)} campioni)"
+          )
+
+          commit_and_push(
+              [
+                  "weather-archive-10min.json",
+                  "weather-archive-daily.json"
+              ],
+              "Aggiorna archivio preciso - medie 10 minuti"
+          )
+
+          PY
