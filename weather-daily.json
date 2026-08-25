@@ -41,10 +41,10 @@
   },
   {
     "date": "2026-08-25",
-    "min": 21.3,
-    "minTime": "02:30",
+    "min": 21.1,
+    "minTime": "02:40",
     "max": 25.0,
     "maxTime": "01:20",
-    "samples": 18
+    "samples": 19
   }
 ]
