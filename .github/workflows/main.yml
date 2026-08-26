@@ -6,10 +6,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: switchbot-weather-update
-  cancel-in-progress: false
-
 jobs:
   update-weather:
     runs-on: ubuntu-latest
@@ -69,7 +65,12 @@ jobs:
 
           def commit_and_push(files, message):
               run_git("config", "user.name", "github-actions[bot]")
-              run_git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+              run_git(
+                  "config",
+                  "user.email",
+                  "41898282+github-actions[bot]@users.noreply.github.com"
+              )
+
               run_git("add", *files)
 
               changed = subprocess.run(
@@ -87,7 +88,9 @@ jobs:
           def switchbot_status():
               nonce = str(uuid.uuid4())
               t = str(int(time.time() * 1000))
+
               message = TOKEN + t + nonce
+
               sign = base64.b64encode(
                   hmac.new(
                       SECRET.encode("utf-8"),
@@ -134,8 +137,6 @@ jobs:
 
           # ============================================================
           # 1) HOME
-          # Una sola lettura puntuale all'inizio del run.
-          # È quella usata da Home, grafico e min/max della Home.
           # ============================================================
 
           samples = []
@@ -161,8 +162,8 @@ jobs:
 
           write_json("weather-data.json", current_data)
 
-          # Storico Home: punto reale ogni ~10 minuti.
           history = read_json("weather-history.json", [])
+
           if not isinstance(history, list):
               history = []
 
@@ -175,24 +176,29 @@ jobs:
           history.append(home_entry)
 
           cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+
           clean_history = []
 
           for row in history:
               if not isinstance(row, dict):
                   continue
+
               dt = parse_iso(row.get("time"))
+
               if dt is not None and dt >= cutoff:
                   clean_history.append(row)
 
           clean_history.sort(key=lambda x: x.get("time", ""))
+
           write_json("weather-history.json", clean_history)
 
-          # Min/max Home: valori PUNTUALI.
           daily = read_json("weather-daily.json", [])
+
           if not isinstance(daily, list):
               daily = []
 
           local_first = first["capturedAt"].astimezone(ROME)
+
           home_date = local_first.strftime("%Y-%m-%d")
           home_time = local_first.strftime("%H:%M")
           home_temp = first["temperature"]
@@ -200,7 +206,8 @@ jobs:
           today = next(
               (
                   row for row in daily
-                  if isinstance(row, dict) and row.get("date") == home_date
+                  if isinstance(row, dict)
+                  and row.get("date") == home_date
               ),
               None
           )
@@ -213,7 +220,9 @@ jobs:
                   "max": home_temp,
                   "maxTime": home_time
               }
+
               daily.append(today)
+
           else:
               if home_temp < float(today.get("min", home_temp)):
                   today["min"] = home_temp
@@ -223,14 +232,12 @@ jobs:
                   today["max"] = home_temp
                   today["maxTime"] = home_time
 
-              # La Home resta volutamente con il metodo puntuale.
               today.pop("method", None)
 
           daily.sort(key=lambda x: x.get("date", ""))
+
           write_json("weather-daily.json", daily)
 
-          # Pubblica subito i dati Home: non aspettiamo gli 8 minuti
-          # necessari per completare la media dell'Archivio.
           commit_and_push(
               [
                   "weather-data.json",
@@ -242,13 +249,12 @@ jobs:
 
           # ============================================================
           # 2) ARCHIVIO PRECISO
-          # Il primo campione è già quello preso sopra.
-          # Aggiungiamo altri 4 campioni a distanza di 2 minuti:
-          # totale 5 campioni in circa 10 minuti.
+          # 5 campioni ogni 2 minuti
           # ============================================================
 
           for i in range(4):
               time.sleep(120)
+
               reading = switchbot_status()
               samples.append(reading)
 
@@ -260,10 +266,13 @@ jobs:
               )
 
           avg_temp = round(
-              sum(x["temperature"] for x in samples) / len(samples), 2
+              sum(x["temperature"] for x in samples) / len(samples),
+              2
           )
+
           avg_humidity = round(
-              sum(x["humidity"] for x in samples) / len(samples), 1
+              sum(x["humidity"] for x in samples) / len(samples),
+              1
           )
 
           first_local = samples[0]["capturedAt"].astimezone(ROME)
@@ -273,11 +282,9 @@ jobs:
               second=0,
               microsecond=0
           )
+
           block_end = block_start + timedelta(minutes=10)
 
-          # La data appartiene allo slot che INIZIA in quel giorno.
-          # In questo modo lo slot 23:50-00:00 resta correttamente
-          # attribuito al giorno che sta terminando.
           archive_date = block_start.strftime("%Y-%m-%d")
           archive_time = block_end.strftime("%H:%M")
 
@@ -293,8 +300,8 @@ jobs:
               "method": "mean_5_samples_2min"
           }
 
-          # Storico permanente delle medie a 10 minuti.
           tenmin = read_json("weather-archive-10min.json", [])
+
           if not isinstance(tenmin, list):
               tenmin = []
 
@@ -307,13 +314,13 @@ jobs:
           ]
 
           tenmin.append(slot)
+
           tenmin.sort(key=lambda x: x.get("time", ""))
+
           write_json("weather-archive-10min.json", tenmin)
 
-          # Min/max Archivio:
-          # minima = media di 10 minuti più bassa del giorno
-          # massima = media di 10 minuti più alta del giorno.
           archive_daily = read_json("weather-archive-daily.json", [])
+
           if not isinstance(archive_daily, list):
               archive_daily = []
 
@@ -335,7 +342,9 @@ jobs:
                   "maxTime": archive_time,
                   "method": "10min_mean_of_5_samples_every_2min"
               }
+
               archive_daily.append(day)
+
           else:
               if avg_temp < float(day.get("min", avg_temp)):
                   day["min"] = avg_temp
@@ -348,13 +357,18 @@ jobs:
               day["method"] = "10min_mean_of_5_samples_every_2min"
 
           archive_daily.sort(key=lambda x: x.get("date", ""))
-          write_json("weather-archive-daily.json", archive_daily)
+
+          write_json(
+              "weather-archive-daily.json",
+              archive_daily
+          )
 
           print(
               f"ARCHIVIO - slot "
               f"{block_start.strftime('%H:%M')}-"
               f"{block_end.strftime('%H:%M')} => "
-              f"{avg_temp:.2f} °C ({len(samples)} campioni)"
+              f"{avg_temp:.2f} °C "
+              f"({len(samples)} campioni)"
           )
 
           commit_and_push(
