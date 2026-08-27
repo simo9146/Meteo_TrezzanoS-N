@@ -2158,5 +2158,14 @@
     "humidity": 62.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-08-27T12:00:00Z",
+    "date": "2026-08-27",
+    "localTime": "14:00",
+    "temperature": 29.82,
+    "humidity": 61.4,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
   }
 ]
