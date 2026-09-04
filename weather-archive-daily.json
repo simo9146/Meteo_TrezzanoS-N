@@ -89,8 +89,8 @@
   },
   {
     "date": "2026-09-04",
-    "min": 19.3,
-    "minTime": "03:00",
+    "min": 19.06,
+    "minTime": "03:10",
     "max": 22.72,
     "maxTime": "00:50",
     "method": "10min_mean_of_5_samples_every_2min"
