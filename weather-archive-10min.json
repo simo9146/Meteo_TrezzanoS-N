@@ -18979,5 +18979,14 @@
     "humidity": 82.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-09-09T13:00:00Z",
+    "date": "2026-09-09",
+    "localTime": "15:00",
+    "temperature": 22.44,
+    "humidity": 77.6,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
   }
 ]
