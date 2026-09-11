@@ -3,88 +3,80 @@
     "date": "2026-09-01",
     "min": 19.66,
     "minTime": "07:10",
-    "max": 32.5,
-    "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "max": 30.6,
+    "maxTime": "17:20",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-02",
     "min": 21.56,
     "minTime": "00:00",
-    "max": 32.7,
-    "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "max": 31.2,
+    "maxTime": "16:20",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-03",
     "min": 18.02,
     "minTime": "07:00",
-    "max": 32.9,
+    "max": 30.8,
     "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-04",
     "min": 17.6,
     "minTime": "07:30",
-    "max": 35.2,
-    "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "max": 33.1,
+    "maxTime": "17:20",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-05",
     "min": 18.24,
     "minTime": "07:20",
-    "max": 34.6,
-    "maxTime": "16:30",
-    "method": "min_10min_max_30min_mean"
+    "max": 32.5,
+    "maxTime": "16:50",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-06",
     "min": 21.34,
     "minTime": "01:40",
-    "max": 34.9,
-    "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "max": 32.7,
+    "maxTime": "17:50",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-07",
     "min": 20.2,
     "minTime": "06:20",
-    "max": 34.1,
-    "maxTime": "17:00",
-    "method": "min_10min_max_30min_mean"
+    "max": 32.4,
+    "maxTime": "17:10",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-08",
     "min": 21.0,
     "minTime": "07:30",
-    "max": 34.0,
-    "maxTime": "15:30",
-    "method": "min_10min_max_30min_mean"
+    "max": 32.3,
+    "maxTime": "15:50",
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-09",
     "min": 17.92,
     "minTime": "13:50",
-    "max": 25.9,
+    "max": 24.9,
     "maxTime": "16:30",
-    "method": "min_10min_max_30min_mean"
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   },
   {
     "date": "2026-09-10",
     "min": 16.0,
     "minTime": "05:50",
-    "max": 24.8,
+    "max": 23.9,
     "maxTime": "18:00",
-    "method": "min_10min_max_30min_mean"
-  },
-  {
-    "date": "2026-09-11",
-    "min": 17.5,
-    "minTime": "07:00",
-    "max": 28.1,
-    "maxTime": "16:30",
-    "method": "min_10min_max_30min_mean"
+    "method": "min_10min_max_10min_normalized_UR_plus_5"
   }
 ]
