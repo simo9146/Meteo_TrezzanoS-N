@@ -22053,8 +22053,8 @@
     "time": "2026-09-11T22:00:00Z",
     "date": "2026-09-11",
     "localTime": "00:00",
-    "temperature": 19.64,
-    "humidity": 81.8,
+    "temperature": 19.48,
+    "humidity": 82.6,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
