@@ -3,7 +3,7 @@
     "date": "2026-09-01",
     "min": 19.09,
     "minTime": "07:10",
-    "max": 31.4,
+    "max": 31.38,
     "maxTime": "17:20",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -11,7 +11,7 @@
     "date": "2026-09-02",
     "min": 20.93,
     "minTime": "00:00",
-    "max": 31.9,
+    "max": 31.87,
     "maxTime": "16:20",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -19,7 +19,7 @@
     "date": "2026-09-03",
     "min": 17.46,
     "minTime": "07:00",
-    "max": 31.6,
+    "max": 31.63,
     "maxTime": "17:00",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -27,7 +27,7 @@
     "date": "2026-09-04",
     "min": 17.04,
     "minTime": "07:30",
-    "max": 34.0,
+    "max": 34.01,
     "maxTime": "17:20",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -35,7 +35,7 @@
     "date": "2026-09-05",
     "min": 17.58,
     "minTime": "07:20",
-    "max": 33.3,
+    "max": 33.33,
     "maxTime": "16:50",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -43,7 +43,7 @@
     "date": "2026-09-06",
     "min": 20.72,
     "minTime": "01:40",
-    "max": 33.6,
+    "max": 33.63,
     "maxTime": "17:50",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -51,7 +51,7 @@
     "date": "2026-09-07",
     "min": 19.62,
     "minTime": "06:20",
-    "max": 33.1,
+    "max": 33.12,
     "maxTime": "17:10",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -59,7 +59,7 @@
     "date": "2026-09-08",
     "min": 20.41,
     "minTime": "07:30",
-    "max": 33.1,
+    "max": 33.08,
     "maxTime": "15:50",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -67,7 +67,7 @@
     "date": "2026-09-09",
     "min": 17.41,
     "minTime": "13:50",
-    "max": 25.4,
+    "max": 25.38,
     "maxTime": "16:30",
     "method": "min_max_10min_normalized_UR_plus_3"
   },
@@ -75,7 +75,7 @@
     "date": "2026-09-10",
     "min": 15.51,
     "minTime": "05:50",
-    "max": 24.4,
+    "max": 24.37,
     "maxTime": "18:00",
     "method": "min_max_10min_normalized_UR_plus_3"
   }
