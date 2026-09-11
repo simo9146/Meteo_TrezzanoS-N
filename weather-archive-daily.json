@@ -1,154 +1,82 @@
 [
   {
-    "date": "2026-08-24",
-    "min": 30.54,
-    "minTime": "17:10",
-    "max": 30.54,
-    "maxTime": "17:10",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-25",
-    "min": 22.2,
-    "minTime": "23:40",
-    "max": 24.46,
-    "maxTime": "21:00",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-26",
-    "min": 21.7,
-    "minTime": "01:10",
-    "max": 29.84,
-    "maxTime": "15:20",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-27",
-    "min": 21.22,
-    "minTime": "04:30",
-    "max": 31.82,
-    "maxTime": "15:50",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-28",
-    "min": 23.06,
-    "minTime": "00:00",
-    "max": 32.54,
-    "maxTime": "16:20",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-29",
-    "min": 19.38,
-    "minTime": "07:40",
-    "max": 32.32,
-    "maxTime": "17:50",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-30",
-    "min": 18.1,
-    "minTime": "05:40",
-    "max": 32.34,
-    "maxTime": "15:40",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-08-31",
-    "min": 19.1,
-    "minTime": "04:50",
-    "max": 34.3,
-    "maxTime": "18:30",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
     "date": "2026-09-01",
     "min": 19.66,
     "minTime": "07:10",
-    "max": 32.6,
-    "maxTime": "17:20",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 32.5,
+    "maxTime": "17:00",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-02",
     "min": 21.56,
     "minTime": "00:00",
-    "max": 33.02,
-    "maxTime": "16:20",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 32.7,
+    "maxTime": "17:00",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-03",
     "min": 18.02,
     "minTime": "07:00",
-    "max": 32.98,
+    "max": 32.9,
     "maxTime": "17:00",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-04",
     "min": 17.6,
     "minTime": "07:30",
-    "max": 35.5,
-    "maxTime": "17:20",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 35.2,
+    "maxTime": "17:00",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-05",
     "min": 18.24,
     "minTime": "07:20",
-    "max": 34.72,
-    "maxTime": "16:50",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 34.6,
+    "maxTime": "16:30",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-06",
     "min": 21.34,
     "minTime": "01:40",
-    "max": 35.1,
-    "maxTime": "17:50",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 34.9,
+    "maxTime": "17:00",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-07",
     "min": 20.2,
     "minTime": "06:20",
-    "max": 34.34,
-    "maxTime": "17:10",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 34.1,
+    "maxTime": "17:00",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-08",
     "min": 21.0,
     "minTime": "07:30",
-    "max": 34.4,
-    "maxTime": "15:50",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "max": 34.0,
+    "maxTime": "15:30",
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-09",
     "min": 17.92,
     "minTime": "13:50",
-    "max": 26.14,
+    "max": 25.9,
     "maxTime": "16:30",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "method": "min_10min_max_30min_mean"
   },
   {
     "date": "2026-09-10",
     "min": 16.0,
     "minTime": "05:50",
-    "max": 25.14,
+    "max": 24.8,
     "maxTime": "18:00",
-    "method": "10min_mean_of_5_samples_every_2min"
-  },
-  {
-    "date": "2026-09-11",
-    "min": 17.5,
-    "minTime": "07:00",
-    "max": 19.68,
-    "maxTime": "10:20",
-    "method": "10min_mean_of_5_samples_every_2min"
+    "method": "min_10min_max_30min_mean"
   }
 ]
