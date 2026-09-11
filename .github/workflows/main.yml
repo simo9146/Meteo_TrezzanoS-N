@@ -34,6 +34,7 @@ jobs:
           import base64
           import urllib.request
           import subprocess
+          import math
           from pathlib import Path
           from datetime import datetime, timedelta, timezone
           from zoneinfo import ZoneInfo
@@ -46,6 +47,7 @@ jobs:
           API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
 
           ARCHIVE_START_DATE = "2026-09-01"
+          UR_CORRECTION = 5.0
 
           def read_json(path, default):
               p = Path(path)
@@ -91,11 +93,9 @@ jobs:
 
               run_git("add", *files)
 
-              changed = (
-                  subprocess.run(
-                      ["git", "diff", "--cached", "--quiet"]
-                  ).returncode != 0
-              )
+              changed = subprocess.run(
+                  ["git", "diff", "--cached", "--quiet"]
+              ).returncode != 0
 
               if not changed:
                   print(
@@ -105,19 +105,8 @@ jobs:
                   return
 
               run_git("commit", "-m", message)
-
-              run_git(
-                  "pull",
-                  "--rebase",
-                  "origin",
-                  "main"
-              )
-
-              run_git(
-                  "push",
-                  "origin",
-                  "main"
-              )
+              run_git("pull", "--rebase", "origin", "main")
+              run_git("push", "origin", "main")
 
           def switchbot_status():
               nonce = str(uuid.uuid4())
@@ -140,8 +129,7 @@ jobs:
                       "sign": sign,
                       "nonce": nonce,
                       "t": t,
-                      "Content-Type":
-                          "application/json; charset=utf8"
+                      "Content-Type": "application/json; charset=utf8"
                   }
               )
 
@@ -153,19 +141,14 @@ jobs:
 
               if payload.get("statusCode") != 100:
                   raise RuntimeError(
-                      "SwitchBot API error: "
-                      f"{payload.get('message')}"
+                      f"SwitchBot API error: {payload.get('message')}"
                   )
 
               body = payload.get("body") or {}
 
               return {
-                  "temperature": float(
-                      body["temperature"]
-                  ),
-                  "humidity": float(
-                      body["humidity"]
-                  ),
+                  "temperature": float(body["temperature"]),
+                  "humidity": float(body["humidity"]),
                   "battery": body.get("battery"),
                   "capturedAt": datetime.now(timezone.utc)
               }
@@ -173,13 +156,88 @@ jobs:
           def parse_iso(value):
               try:
                   return datetime.fromisoformat(
-                      str(value).replace(
-                          "Z",
-                          "+00:00"
-                      )
+                      str(value).replace("Z", "+00:00")
                   )
               except Exception:
                   return None
+
+          # ============================================================
+          # FORMULA T NORMALIZZATA
+          #
+          # T1 = temperatura dello slot 10 minuti
+          # UR1 = umidità relativa media dello stesso slot
+          # UR2 = UR1 + 5 punti percentuali
+          #
+          # E = 6.1078 * 10^((7.5*T1)/(237.3+T1)) * UR1/100
+          #
+          # Psat2 = E / UR2 * 100
+          #
+          # x = log10(Psat2 / 6.1078)
+          #
+          # T2 = 237.3*x / (7.5-x)
+          # ============================================================
+
+          def normalized_temperature(
+              temperature,
+              humidity,
+              correction=UR_CORRECTION
+          ):
+              T1 = float(temperature)
+              UR1 = float(humidity)
+
+              if not math.isfinite(T1):
+                  return None
+
+              if not math.isfinite(UR1):
+                  return None
+
+              # Evita valori non fisici
+              if UR1 <= 0:
+                  return None
+
+              UR2 = UR1 + correction
+
+              if UR2 <= 0:
+                  return None
+
+              # Pressione di vapore reale iniziale E
+              exponent = (
+                  7.5 * T1
+              ) / (
+                  237.3 + T1
+              )
+
+              E = (
+                  6.1078
+                  * (10 ** exponent)
+                  * (UR1 / 100.0)
+              )
+
+              # Nuova pressione di saturazione
+              Psat2 = (
+                  E
+                  / UR2
+                  * 100.0
+              )
+
+              if Psat2 <= 0:
+                  return None
+
+              # Formula inversa di Magnus-Tetens
+              x = math.log10(
+                  Psat2 / 6.1078
+              )
+
+              denominator = 7.5 - x
+
+              if denominator == 0:
+                  return None
+
+              T2 = (
+                  237.3 * x
+              ) / denominator
+
+              return T2
 
           # ============================================================
           # 1) HOME
@@ -191,7 +249,7 @@ jobs:
           samples.append(first)
 
           print(
-              "HOME - lettura puntuale: "
+              f"HOME - lettura puntuale: "
               f"{first['temperature']:.1f} °C - "
               f"{first['humidity']:.0f}% - "
               f"{first['capturedAt'].isoformat()}"
@@ -264,10 +322,7 @@ jobs:
           if not isinstance(daily, list):
               daily = []
 
-          local_first = (
-              first["capturedAt"]
-              .astimezone(ROME)
-          )
+          local_first = first["capturedAt"].astimezone(ROME)
 
           home_date = local_first.strftime(
               "%Y-%m-%d"
@@ -335,12 +390,11 @@ jobs:
 
           # ============================================================
           # 2) ARCHIVIO PRECISO
-          #
           # 5 campioni ogni 2 minuti
-          # => una media ogni 10 minuti
           # ============================================================
 
           for i in range(4):
+
               time.sleep(120)
 
               reading = switchbot_status()
@@ -369,10 +423,9 @@ jobs:
               1
           )
 
-          first_local = (
-              samples[0]["capturedAt"]
-              .astimezone(ROME)
-          )
+          first_local = samples[0][
+              "capturedAt"
+          ].astimezone(ROME)
 
           block_start = first_local.replace(
               minute=(
@@ -400,23 +453,13 @@ jobs:
                   .astimezone(timezone.utc)
                   .isoformat()
                   .replace("+00:00", "Z"),
-
               "date": archive_date,
-
               "localTime": archive_time,
-
               "temperature": avg_temp,
-
               "humidity": avg_humidity,
-
               "samples": len(samples),
-
               "method": "mean_5_samples_2min"
           }
-
-          # ============================================================
-          # SALVA I DATI A 10 MINUTI
-          # ============================================================
 
           tenmin = read_json(
               "weather-archive-10min.json",
@@ -449,25 +492,27 @@ jobs:
           # ============================================================
           # 3) RICOSTRUZIONE ARCHIVIO GIORNALIERO
           #
-          # MINIMA:
-          # minimo dei valori a 10 minuti
+          # Dal 01/09/2026.
           #
-          # MASSIMA:
-          # media dei 3 valori a 10 minuti
-          # appartenenti alla stessa finestra fissa
-          # di 30 minuti
+          # MIN:
+          # minimo tra tutti gli slot da 10 minuti.
           #
-          # Esempio:
-          # 17:00 + 17:10 + 17:20
-          # => finestra 17:00
+          # MAX:
+          # per ogni slot da 10 minuti:
+          #   T1 = temperatura media dello slot
+          #   UR1 = UR media dello slot
+          #   UR2 = UR1 + 5
+          #   T2 = temperatura normalizzata
           #
-          # Solo finestre complete da 3 valori.
+          # La MAX giornaliera è la T2 più alta.
           # ============================================================
 
-          archive_daily = []
+          today_local = datetime.now(
+              ROME
+          ).strftime("%Y-%m-%d")
 
-          # Raggruppa i dati a 10 minuti per giorno
-          daily_readings = {}
+          # Raggruppa gli slot da 10 minuti per giornata
+          days = {}
 
           for row in tenmin:
 
@@ -475,168 +520,170 @@ jobs:
                   continue
 
               date = row.get("date")
-              local_time = row.get("localTime")
-              temperature = row.get("temperature")
 
               if not date:
                   continue
 
+              # Solo dal 01/09/2026
               if date < ARCHIVE_START_DATE:
                   continue
 
-              if not local_time:
+              # Non archiviare la giornata corrente
+              if date >= today_local:
                   continue
 
-              if temperature is None:
+              temperature = row.get(
+                  "temperature"
+              )
+
+              humidity = row.get(
+                  "humidity"
+              )
+
+              local_time = row.get(
+                  "localTime"
+              )
+
+              if (
+                  temperature is None
+                  or humidity is None
+                  or not local_time
+              ):
                   continue
 
               try:
                   temperature = float(
                       temperature
                   )
+
+                  humidity = float(
+                      humidity
+                  )
+
               except Exception:
                   continue
 
-              daily_readings.setdefault(
+              days.setdefault(
                   date,
                   []
-              ).append({
-                  "localTime": local_time,
-                  "temperature": temperature
-              })
+              ).append(
+                  {
+                      "temperature": temperature,
+                      "humidity": humidity,
+                      "localTime": str(local_time)
+                  }
+              )
 
-          # ============================================================
-          # COSTRUZIONE DELLE GIORNATE
-          # ============================================================
+          archive_daily = []
 
-          for date in sorted(
-              daily_readings.keys()
-          ):
+          for date in sorted(days.keys()):
 
-              readings = daily_readings[date]
+              rows = days[date]
+
+              if not rows:
+                  continue
 
               # --------------------------------------------------------
               # MINIMA
               # --------------------------------------------------------
 
-              min_reading = min(
-                  readings,
+              min_row = min(
+                  rows,
                   key=lambda x: x["temperature"]
               )
 
               min_value = round(
-                  min_reading["temperature"],
+                  min_row["temperature"],
                   2
               )
 
-              min_time = min_reading["localTime"]
+              min_time = min_row["localTime"]
 
               # --------------------------------------------------------
-              # MASSIMA SU MEDIA 30 MINUTI
-              # --------------------------------------------------------
-
-              thirty_minute_groups = {}
-
-              for reading in readings:
-
-                  local_time = reading[
-                      "localTime"
-                  ]
-
-                  try:
-                      hour = int(
-                          local_time[0:2]
-                      )
-
-                      minute = int(
-                          local_time[3:5]
-                      )
-                  except Exception:
-                      continue
-
-                  # Le letture sono a 10 minuti.
-                  #
-                  # 00, 10, 20 => finestra XX:00
-                  # 30, 40, 50 => finestra XX:30
-
-                  slot_minute = (
-                      (minute // 30) * 30
-                  )
-
-                  slot_start = (
-                      f"{hour:02d}:"
-                      f"{slot_minute:02d}"
-                  )
-
-                  key = (
-                      date,
-                      slot_start
-                  )
-
-                  thirty_minute_groups.setdefault(
-                      key,
-                      []
-                  ).append(
-                      reading["temperature"]
-                  )
-
-              complete_slots = []
-
-              for (
-                  (slot_date, slot_start),
-                  values
-              ) in thirty_minute_groups.items():
-
-                  # SOLO finestre complete:
-                  # esattamente 3 valori a 10 minuti.
-
-                  if len(values) != 3:
-                      continue
-
-                  slot_average = (
-                      sum(values) / 3
-                  )
-
-                  complete_slots.append({
-                      "time": slot_start,
-                      "average": slot_average
-                  })
-
-              # Se non esistono ancora finestre complete,
-              # il giorno non viene inserito.
+              # MASSIMA NORMALIZZATA
               #
-              # Questo evita di creare massime parziali.
+              # Usiamo esclusivamente gli slot da 10 minuti.
+              # La MAX è la temperatura normalizzata del singolo
+              # slot che produce il valore T2 più alto.
+              # --------------------------------------------------------
 
-              if not complete_slots:
+              max_normalized = None
+              max_normalized_time = None
+              max_original = None
+              max_original_humidity = None
+              max_normalized_humidity = None
+
+              for row in rows:
+
+                  normalized = normalized_temperature(
+                      row["temperature"],
+                      row["humidity"],
+                      UR_CORRECTION
+                  )
+
+                  if normalized is None:
+                      continue
+
+                  if (
+                      max_normalized is None
+                      or normalized > max_normalized
+                  ):
+
+                      max_normalized = normalized
+
+                      max_normalized_time = (
+                          row["localTime"]
+                      )
+
+                      max_original = (
+                          row["temperature"]
+                      )
+
+                      max_original_humidity = (
+                          row["humidity"]
+                      )
+
+                      max_normalized_humidity = (
+                          row["humidity"]
+                          + UR_CORRECTION
+                      )
+
+              # Se non è possibile calcolare la MAX,
+              # non inseriamo la giornata.
+              if max_normalized is None:
                   continue
 
-              max_slot = max(
-                  complete_slots,
-                  key=lambda x: x["average"]
-              )
-
               max_value = round(
-                  max_slot["average"],
+                  max_normalized,
                   1
               )
 
-              max_time = max_slot["time"]
+              archive_daily.append(
+                  {
+                      "date": date,
+                      "min": min_value,
+                      "minTime": min_time,
+                      "max": max_value,
+                      "maxTime": max_normalized_time,
+                      "method": "min_10min_max_10min_normalized_UR_plus_5"
+                  }
+              )
 
-              day = {
-                  "date": date,
-                  "min": min_value,
-                  "minTime": min_time,
-                  "max": max_value,
-                  "maxTime": max_time,
-                  "method":
-                      "min_10min_max_30min_mean"
-              }
+              print(
+                  f"ARCHIVIO GIORNALIERO {date}: "
+                  f"MIN {min_value:.2f} °C "
+                  f"({min_time}) | "
+                  f"MAX NORMALIZZATA {max_value:.1f} °C "
+                  f"({max_normalized_time}) | "
+                  f"T originale {max_original:.2f} °C | "
+                  f"UR {max_original_humidity:.1f}% -> "
+                  f"{max_normalized_humidity:.1f}%"
+              )
 
-              archive_daily.append(day)
-
-          # ============================================================
-          # SALVA ARCHIVIO GIORNALIERO
-          # ============================================================
+          # Ordinamento cronologico
+          archive_daily.sort(
+              key=lambda x: x.get("date", "")
+          )
 
           write_json(
               "weather-archive-daily.json",
@@ -644,33 +691,16 @@ jobs:
           )
 
           print(
-              "ARCHIVIO GIORNALIERO RICOSTRUITO"
+              "ARCHIVIO DAILY RICOSTRUITO: "
+              f"{len(archive_daily)} giornate"
           )
-
-          print(
-              f"Giorni presenti: "
-              f"{len(archive_daily)}"
-          )
-
-          for day in archive_daily:
-              print(
-                  f"{day['date']} -> "
-                  f"min {day['min']:.2f} °C "
-                  f"({day['minTime']}) - "
-                  f"max {day['max']:.1f} °C "
-                  f"({day['maxTime']})"
-              )
-
-          # ============================================================
-          # COMMIT
-          # ============================================================
 
           commit_and_push(
               [
                   "weather-archive-10min.json",
                   "weather-archive-daily.json"
               ],
-              "Aggiorna archivio preciso - max media 30 minuti"
+              "Aggiorna archivio - MAX normalizzata UR +5"
           )
 
           PY
