@@ -4,10 +4,11 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/10 * * * *"
 
-# Evita che due workflow SwitchBot modifichino
-# contemporaneamente gli stessi file.
+# Una sola esecuzione SwitchBot alla volta.
+# Se una nuova esecuzione parte mentre la precedente
+# è ancora attiva, viene messa in coda.
 concurrency:
   group: switchbot-weather
   cancel-in-progress: false
@@ -64,7 +65,7 @@ jobs:
           # CONFIGURAZIONE
           # ============================================================
 
-          # Dall'11/09/2026 la HOME utilizza UR +3
+          # Dall'11/09/2026 la HOME utilizza la normalizzazione UR +3
           NORMALIZATION_START_DATE = "2026-09-11"
 
           # Dal 01/09/2026 l'ARCHIVIO GIORNALIERO utilizza UR +3
@@ -89,6 +90,7 @@ jobs:
               except Exception:
                   return default
 
+
           def write_json(path, data):
               Path(path).write_text(
                   json.dumps(
@@ -99,11 +101,13 @@ jobs:
                   encoding="utf-8"
               )
 
+
           def run_git(*args):
               subprocess.run(
                   ["git", *args],
                   check=True
               )
+
 
           def commit_and_push(files, message):
 
@@ -148,9 +152,6 @@ jobs:
                   message
               )
 
-              # Aggiorna il repository prima del push.
-              # Grazie alla concurrency non ci saranno
-              # altre run SwitchBot contemporanee.
               run_git(
                   "pull",
                   "--rebase",
@@ -163,6 +164,7 @@ jobs:
                   "origin",
                   "main"
               )
+
 
           def parse_iso(value):
               try:
@@ -183,10 +185,7 @@ jobs:
           # La pressione di vapore E rimane costante.
           # ============================================================
 
-          def normalize_temperature(
-              temp,
-              humidity
-          ):
+          def normalize_temperature(temp, humidity):
 
               if temp is None or humidity is None:
                   return None
@@ -242,6 +241,7 @@ jobs:
                   t2,
                   2
               )
+
 
           def corrected_home_values(
               temp,
@@ -373,9 +373,7 @@ jobs:
 
           first = switchbot_status()
 
-          samples.append(
-              first
-          )
+          samples.append(first)
 
           local_first = (
               first["capturedAt"]
