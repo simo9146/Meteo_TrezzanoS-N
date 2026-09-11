@@ -6,6 +6,12 @@ on:
   schedule:
     - cron: "*/15 * * * *"
 
+# Evita che due workflow SwitchBot modifichino
+# contemporaneamente gli stessi file.
+concurrency:
+  group: switchbot-weather
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -48,19 +54,22 @@ jobs:
           DEVICE_ID = os.environ["DEVICE_ID"]
 
           ROME = ZoneInfo("Europe/Rome")
-          API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
+
+          API_URL = (
+              f"https://api.switch-bot.com/v1.1/"
+              f"devices/{DEVICE_ID}/status"
+          )
 
           # ============================================================
           # CONFIGURAZIONE
           # ============================================================
 
-          # Da questa data la HOME utilizza la normalizzazione UR +3
+          # Dall'11/09/2026 la HOME utilizza UR +3
           NORMALIZATION_START_DATE = "2026-09-11"
 
-          # Da questa data l'ARCHIVIO GIORNALIERO utilizza UR +3
+          # Dal 01/09/2026 l'ARCHIVIO GIORNALIERO utilizza UR +3
           ARCHIVE_START_DATE = "2026-09-01"
 
-          # Correzione umidità relativa
           UR_CORRECTION = 3.0
 
           # ============================================================
@@ -97,6 +106,7 @@ jobs:
               )
 
           def commit_and_push(files, message):
+
               run_git(
                   "config",
                   "user.name",
@@ -109,11 +119,21 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
-              run_git("add", *files)
+              run_git(
+                  "add",
+                  *files
+              )
 
-              changed = subprocess.run(
-                  ["git", "diff", "--cached", "--quiet"]
-              ).returncode != 0
+              changed = (
+                  subprocess.run(
+                      [
+                          "git",
+                          "diff",
+                          "--cached",
+                          "--quiet"
+                      ]
+                  ).returncode != 0
+              )
 
               if not changed:
                   print(
@@ -128,6 +148,9 @@ jobs:
                   message
               )
 
+              # Aggiorna il repository prima del push.
+              # Grazie alla concurrency non ci saranno
+              # altre run SwitchBot contemporanee.
               run_git(
                   "pull",
                   "--rebase",
@@ -164,6 +187,7 @@ jobs:
               temp,
               humidity
           ):
+
               if temp is None or humidity is None:
                   return None
 
@@ -224,6 +248,7 @@ jobs:
               humidity,
               local_date
           ):
+
               # Prima dell'11/09: valori originali
               if local_date < NORMALIZATION_START_DATE:
                   return (
@@ -261,7 +286,7 @@ jobs:
                   uuid.uuid4()
               )
 
-              t = str(
+              timestamp = str(
                   int(
                       time.time() * 1000
                   )
@@ -269,7 +294,7 @@ jobs:
 
               message = (
                   TOKEN
-                  + t
+                  + timestamp
                   + nonce
               )
 
@@ -287,7 +312,7 @@ jobs:
                       "Authorization": TOKEN,
                       "sign": sign,
                       "nonce": nonce,
-                      "t": t,
+                      "t": timestamp,
                       "Content-Type":
                           "application/json; charset=utf8"
                   }
@@ -348,7 +373,9 @@ jobs:
 
           first = switchbot_status()
 
-          samples.append(first)
+          samples.append(
+              first
+          )
 
           local_first = (
               first["capturedAt"]
@@ -356,13 +383,15 @@ jobs:
           )
 
           home_date = (
-              local_first
-              .strftime("%Y-%m-%d")
+              local_first.strftime(
+                  "%Y-%m-%d"
+              )
           )
 
           home_time = (
-              local_first
-              .strftime("%H:%M")
+              local_first.strftime(
+                  "%H:%M"
+              )
           )
 
           home_temp, home_humidity = (
@@ -427,29 +456,31 @@ jobs:
           ):
               history = []
 
-          home_entry = {
-              "time":
-                  first["capturedAt"]
-                  .isoformat()
-                  .replace(
-                      "+00:00",
-                      "Z"
-                  ),
-
-              "temperature":
-                  home_temp,
-
-              "humidity":
-                  home_humidity
-          }
-
           history.append(
-              home_entry
+              {
+                  "time":
+                      first["capturedAt"]
+                      .isoformat()
+                      .replace(
+                          "+00:00",
+                          "Z"
+                      ),
+
+                  "temperature":
+                      home_temp,
+
+                  "humidity":
+                      home_humidity
+              }
           )
 
           cutoff = (
-              datetime.now(timezone.utc)
-              - timedelta(days=7)
+              datetime.now(
+                  timezone.utc
+              )
+              - timedelta(
+                  days=7
+              )
           )
 
           clean_history = []
@@ -611,7 +642,7 @@ jobs:
           # La media dei 5 campioni rappresenta
           # lo slot di 10 minuti.
           #
-          # QUI conserviamo i valori ORIGINALI
+          # Qui conserviamo i valori ORIGINALI
           # del sensore.
           # ============================================================
 
@@ -772,7 +803,7 @@ jobs:
           # - mantiene costante la pressione di vapore
           # - trova minima e massima normalizzate
           #
-          # Le misure originali restano nell'archivio 10 minuti.
+          # I valori originali restano nell'archivio 10 minuti.
           # ============================================================
 
           today_local = (
