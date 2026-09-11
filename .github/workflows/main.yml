@@ -45,26 +45,44 @@ jobs:
           ROME = ZoneInfo("Europe/Rome")
           API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
 
+          ARCHIVE_START_DATE = "2026-09-01"
+
           def read_json(path, default):
               p = Path(path)
+
               if not p.exists():
                   return default
+
               try:
-                  return json.loads(p.read_text(encoding="utf-8"))
+                  return json.loads(
+                      p.read_text(encoding="utf-8")
+                  )
               except Exception:
                   return default
 
           def write_json(path, data):
               Path(path).write_text(
-                  json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+                  json.dumps(
+                      data,
+                      ensure_ascii=False,
+                      indent=2
+                  ) + "\n",
                   encoding="utf-8"
               )
 
           def run_git(*args):
-              subprocess.run(["git", *args], check=True)
+              subprocess.run(
+                  ["git", *args],
+                  check=True
+              )
 
           def commit_and_push(files, message):
-              run_git("config", "user.name", "github-actions[bot]")
+              run_git(
+                  "config",
+                  "user.name",
+                  "github-actions[bot]"
+              )
+
               run_git(
                   "config",
                   "user.email",
@@ -73,17 +91,33 @@ jobs:
 
               run_git("add", *files)
 
-              changed = subprocess.run(
-                  ["git", "diff", "--cached", "--quiet"]
-              ).returncode != 0
+              changed = (
+                  subprocess.run(
+                      ["git", "diff", "--cached", "--quiet"]
+                  ).returncode != 0
+              )
 
               if not changed:
-                  print("Nessuna modifica da salvare:", message)
+                  print(
+                      "Nessuna modifica da salvare:",
+                      message
+                  )
                   return
 
               run_git("commit", "-m", message)
-              run_git("pull", "--rebase", "origin", "main")
-              run_git("push", "origin", "main")
+
+              run_git(
+                  "pull",
+                  "--rebase",
+                  "origin",
+                  "main"
+              )
+
+              run_git(
+                  "push",
+                  "origin",
+                  "main"
+              )
 
           def switchbot_status():
               nonce = str(uuid.uuid4())
@@ -106,23 +140,32 @@ jobs:
                       "sign": sign,
                       "nonce": nonce,
                       "t": t,
-                      "Content-Type": "application/json; charset=utf8"
+                      "Content-Type":
+                          "application/json; charset=utf8"
                   }
               )
 
-              with urllib.request.urlopen(req, timeout=30) as response:
+              with urllib.request.urlopen(
+                  req,
+                  timeout=30
+              ) as response:
                   payload = json.load(response)
 
               if payload.get("statusCode") != 100:
                   raise RuntimeError(
-                      f"SwitchBot API error: {payload.get('message')}"
+                      "SwitchBot API error: "
+                      f"{payload.get('message')}"
                   )
 
               body = payload.get("body") or {}
 
               return {
-                  "temperature": float(body["temperature"]),
-                  "humidity": float(body["humidity"]),
+                  "temperature": float(
+                      body["temperature"]
+                  ),
+                  "humidity": float(
+                      body["humidity"]
+                  ),
                   "battery": body.get("battery"),
                   "capturedAt": datetime.now(timezone.utc)
               }
@@ -130,7 +173,10 @@ jobs:
           def parse_iso(value):
               try:
                   return datetime.fromisoformat(
-                      str(value).replace("Z", "+00:00")
+                      str(value).replace(
+                          "Z",
+                          "+00:00"
+                      )
                   )
               except Exception:
                   return None
@@ -145,7 +191,7 @@ jobs:
           samples.append(first)
 
           print(
-              f"HOME - lettura puntuale: "
+              "HOME - lettura puntuale: "
               f"{first['temperature']:.1f} °C - "
               f"{first['humidity']:.0f}% - "
               f"{first['capturedAt'].isoformat()}"
@@ -154,28 +200,41 @@ jobs:
           current_data = {
               "temperature": first["temperature"],
               "humidity": first["humidity"],
-              "updatedAt": first["capturedAt"].isoformat().replace("+00:00", "Z")
+              "updatedAt": first["capturedAt"]
+                  .isoformat()
+                  .replace("+00:00", "Z")
           }
 
           if first["battery"] is not None:
               current_data["battery"] = first["battery"]
 
-          write_json("weather-data.json", current_data)
+          write_json(
+              "weather-data.json",
+              current_data
+          )
 
-          history = read_json("weather-history.json", [])
+          history = read_json(
+              "weather-history.json",
+              []
+          )
 
           if not isinstance(history, list):
               history = []
 
           home_entry = {
-              "time": first["capturedAt"].isoformat().replace("+00:00", "Z"),
+              "time": first["capturedAt"]
+                  .isoformat()
+                  .replace("+00:00", "Z"),
               "temperature": first["temperature"],
               "humidity": first["humidity"]
           }
 
           history.append(home_entry)
 
-          cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+          cutoff = (
+              datetime.now(timezone.utc)
+              - timedelta(days=7)
+          )
 
           clean_history = []
 
@@ -188,24 +247,42 @@ jobs:
               if dt is not None and dt >= cutoff:
                   clean_history.append(row)
 
-          clean_history.sort(key=lambda x: x.get("time", ""))
+          clean_history.sort(
+              key=lambda x: x.get("time", "")
+          )
 
-          write_json("weather-history.json", clean_history)
+          write_json(
+              "weather-history.json",
+              clean_history
+          )
 
-          daily = read_json("weather-daily.json", [])
+          daily = read_json(
+              "weather-daily.json",
+              []
+          )
 
           if not isinstance(daily, list):
               daily = []
 
-          local_first = first["capturedAt"].astimezone(ROME)
+          local_first = (
+              first["capturedAt"]
+              .astimezone(ROME)
+          )
 
-          home_date = local_first.strftime("%Y-%m-%d")
-          home_time = local_first.strftime("%H:%M")
+          home_date = local_first.strftime(
+              "%Y-%m-%d"
+          )
+
+          home_time = local_first.strftime(
+              "%H:%M"
+          )
+
           home_temp = first["temperature"]
 
           today = next(
               (
-                  row for row in daily
+                  row
+                  for row in daily
                   if isinstance(row, dict)
                   and row.get("date") == home_date
               ),
@@ -224,19 +301,28 @@ jobs:
               daily.append(today)
 
           else:
-              if home_temp < float(today.get("min", home_temp)):
+              if home_temp < float(
+                  today.get("min", home_temp)
+              ):
                   today["min"] = home_temp
                   today["minTime"] = home_time
 
-              if home_temp > float(today.get("max", home_temp)):
+              if home_temp > float(
+                  today.get("max", home_temp)
+              ):
                   today["max"] = home_temp
                   today["maxTime"] = home_time
 
               today.pop("method", None)
 
-          daily.sort(key=lambda x: x.get("date", ""))
+          daily.sort(
+              key=lambda x: x.get("date", "")
+          )
 
-          write_json("weather-daily.json", daily)
+          write_json(
+              "weather-daily.json",
+              daily
+          )
 
           commit_and_push(
               [
@@ -249,7 +335,9 @@ jobs:
 
           # ============================================================
           # 2) ARCHIVIO PRECISO
+          #
           # 5 campioni ogni 2 minuti
+          # => una media ogni 10 minuti
           # ============================================================
 
           for i in range(4):
@@ -266,47 +354,81 @@ jobs:
               )
 
           avg_temp = round(
-              sum(x["temperature"] for x in samples) / len(samples),
+              sum(
+                  x["temperature"]
+                  for x in samples
+              ) / len(samples),
               2
           )
 
           avg_humidity = round(
-              sum(x["humidity"] for x in samples) / len(samples),
+              sum(
+                  x["humidity"]
+                  for x in samples
+              ) / len(samples),
               1
           )
 
-          first_local = samples[0]["capturedAt"].astimezone(ROME)
+          first_local = (
+              samples[0]["capturedAt"]
+              .astimezone(ROME)
+          )
 
           block_start = first_local.replace(
-              minute=(first_local.minute // 10) * 10,
+              minute=(
+                  first_local.minute // 10
+              ) * 10,
               second=0,
               microsecond=0
           )
 
-          block_end = block_start + timedelta(minutes=10)
+          block_end = (
+              block_start
+              + timedelta(minutes=10)
+          )
 
-          archive_date = block_start.strftime("%Y-%m-%d")
-          archive_time = block_end.strftime("%H:%M")
+          archive_date = block_start.strftime(
+              "%Y-%m-%d"
+          )
+
+          archive_time = block_end.strftime(
+              "%H:%M"
+          )
 
           slot = {
-              "time": block_end.astimezone(timezone.utc)
-                               .isoformat()
-                               .replace("+00:00", "Z"),
+              "time": block_end
+                  .astimezone(timezone.utc)
+                  .isoformat()
+                  .replace("+00:00", "Z"),
+
               "date": archive_date,
+
               "localTime": archive_time,
+
               "temperature": avg_temp,
+
               "humidity": avg_humidity,
+
               "samples": len(samples),
+
               "method": "mean_5_samples_2min"
           }
 
-          tenmin = read_json("weather-archive-10min.json", [])
+          # ============================================================
+          # SALVA I DATI A 10 MINUTI
+          # ============================================================
+
+          tenmin = read_json(
+              "weather-archive-10min.json",
+              []
+          )
 
           if not isinstance(tenmin, list):
               tenmin = []
 
           tenmin = [
-              row for row in tenmin
+              row
+              for row in tenmin
               if not (
                   isinstance(row, dict)
                   and row.get("time") == slot["time"]
@@ -315,48 +437,206 @@ jobs:
 
           tenmin.append(slot)
 
-          tenmin.sort(key=lambda x: x.get("time", ""))
-
-          write_json("weather-archive-10min.json", tenmin)
-
-          archive_daily = read_json("weather-archive-daily.json", [])
-
-          if not isinstance(archive_daily, list):
-              archive_daily = []
-
-          day = next(
-              (
-                  row for row in archive_daily
-                  if isinstance(row, dict)
-                  and row.get("date") == archive_date
-              ),
-              None
+          tenmin.sort(
+              key=lambda x: x.get("time", "")
           )
 
-          if day is None:
+          write_json(
+              "weather-archive-10min.json",
+              tenmin
+          )
+
+          # ============================================================
+          # 3) RICOSTRUZIONE ARCHIVIO GIORNALIERO
+          #
+          # MINIMA:
+          # minimo dei valori a 10 minuti
+          #
+          # MASSIMA:
+          # media dei 3 valori a 10 minuti
+          # appartenenti alla stessa finestra fissa
+          # di 30 minuti
+          #
+          # Esempio:
+          # 17:00 + 17:10 + 17:20
+          # => finestra 17:00
+          #
+          # Solo finestre complete da 3 valori.
+          # ============================================================
+
+          archive_daily = []
+
+          # Raggruppa i dati a 10 minuti per giorno
+          daily_readings = {}
+
+          for row in tenmin:
+
+              if not isinstance(row, dict):
+                  continue
+
+              date = row.get("date")
+              local_time = row.get("localTime")
+              temperature = row.get("temperature")
+
+              if not date:
+                  continue
+
+              if date < ARCHIVE_START_DATE:
+                  continue
+
+              if not local_time:
+                  continue
+
+              if temperature is None:
+                  continue
+
+              try:
+                  temperature = float(
+                      temperature
+                  )
+              except Exception:
+                  continue
+
+              daily_readings.setdefault(
+                  date,
+                  []
+              ).append({
+                  "localTime": local_time,
+                  "temperature": temperature
+              })
+
+          # ============================================================
+          # COSTRUZIONE DELLE GIORNATE
+          # ============================================================
+
+          for date in sorted(
+              daily_readings.keys()
+          ):
+
+              readings = daily_readings[date]
+
+              # --------------------------------------------------------
+              # MINIMA
+              # --------------------------------------------------------
+
+              min_reading = min(
+                  readings,
+                  key=lambda x: x["temperature"]
+              )
+
+              min_value = round(
+                  min_reading["temperature"],
+                  2
+              )
+
+              min_time = min_reading["localTime"]
+
+              # --------------------------------------------------------
+              # MASSIMA SU MEDIA 30 MINUTI
+              # --------------------------------------------------------
+
+              thirty_minute_groups = {}
+
+              for reading in readings:
+
+                  local_time = reading[
+                      "localTime"
+                  ]
+
+                  try:
+                      hour = int(
+                          local_time[0:2]
+                      )
+
+                      minute = int(
+                          local_time[3:5]
+                      )
+                  except Exception:
+                      continue
+
+                  # Le letture sono a 10 minuti.
+                  #
+                  # 00, 10, 20 => finestra XX:00
+                  # 30, 40, 50 => finestra XX:30
+
+                  slot_minute = (
+                      (minute // 30) * 30
+                  )
+
+                  slot_start = (
+                      f"{hour:02d}:"
+                      f"{slot_minute:02d}"
+                  )
+
+                  key = (
+                      date,
+                      slot_start
+                  )
+
+                  thirty_minute_groups.setdefault(
+                      key,
+                      []
+                  ).append(
+                      reading["temperature"]
+                  )
+
+              complete_slots = []
+
+              for (
+                  (slot_date, slot_start),
+                  values
+              ) in thirty_minute_groups.items():
+
+                  # SOLO finestre complete:
+                  # esattamente 3 valori a 10 minuti.
+
+                  if len(values) != 3:
+                      continue
+
+                  slot_average = (
+                      sum(values) / 3
+                  )
+
+                  complete_slots.append({
+                      "time": slot_start,
+                      "average": slot_average
+                  })
+
+              # Se non esistono ancora finestre complete,
+              # il giorno non viene inserito.
+              #
+              # Questo evita di creare massime parziali.
+
+              if not complete_slots:
+                  continue
+
+              max_slot = max(
+                  complete_slots,
+                  key=lambda x: x["average"]
+              )
+
+              max_value = round(
+                  max_slot["average"],
+                  1
+              )
+
+              max_time = max_slot["time"]
+
               day = {
-                  "date": archive_date,
-                  "min": avg_temp,
-                  "minTime": archive_time,
-                  "max": avg_temp,
-                  "maxTime": archive_time,
-                  "method": "10min_mean_of_5_samples_every_2min"
+                  "date": date,
+                  "min": min_value,
+                  "minTime": min_time,
+                  "max": max_value,
+                  "maxTime": max_time,
+                  "method":
+                      "min_10min_max_30min_mean"
               }
 
               archive_daily.append(day)
 
-          else:
-              if avg_temp < float(day.get("min", avg_temp)):
-                  day["min"] = avg_temp
-                  day["minTime"] = archive_time
-
-              if avg_temp > float(day.get("max", avg_temp)):
-                  day["max"] = avg_temp
-                  day["maxTime"] = archive_time
-
-              day["method"] = "10min_mean_of_5_samples_every_2min"
-
-          archive_daily.sort(key=lambda x: x.get("date", ""))
+          # ============================================================
+          # SALVA ARCHIVIO GIORNALIERO
+          # ============================================================
 
           write_json(
               "weather-archive-daily.json",
@@ -364,19 +644,33 @@ jobs:
           )
 
           print(
-              f"ARCHIVIO - slot "
-              f"{block_start.strftime('%H:%M')}-"
-              f"{block_end.strftime('%H:%M')} => "
-              f"{avg_temp:.2f} °C "
-              f"({len(samples)} campioni)"
+              "ARCHIVIO GIORNALIERO RICOSTRUITO"
           )
+
+          print(
+              f"Giorni presenti: "
+              f"{len(archive_daily)}"
+          )
+
+          for day in archive_daily:
+              print(
+                  f"{day['date']} -> "
+                  f"min {day['min']:.2f} °C "
+                  f"({day['minTime']}) - "
+                  f"max {day['max']:.1f} °C "
+                  f"({day['maxTime']})"
+              )
+
+          # ============================================================
+          # COMMIT
+          # ============================================================
 
           commit_and_push(
               [
                   "weather-archive-10min.json",
                   "weather-archive-daily.json"
               ],
-              "Aggiorna archivio preciso - medie 10 minuti"
+              "Aggiorna archivio preciso - max media 30 minuti"
           )
 
           PY
