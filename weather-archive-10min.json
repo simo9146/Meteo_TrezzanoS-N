@@ -23232,7 +23232,7 @@
     "time": "2026-09-12T19:50:00Z",
     "date": "2026-09-12",
     "localTime": "21:50",
-    "temperature": 20.08,
+    "temperature": 19.8,
     "humidity": 75.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
