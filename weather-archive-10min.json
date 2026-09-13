@@ -24087,8 +24087,8 @@
     "time": "2026-09-13T12:50:00Z",
     "date": "2026-09-13",
     "localTime": "14:50",
-    "temperature": 26.2,
-    "humidity": 52.2,
+    "temperature": 26.84,
+    "humidity": 53.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
