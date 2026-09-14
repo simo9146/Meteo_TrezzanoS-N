@@ -2,8 +2,15 @@ name: Aggiorna previsioni MET Norway
 
 on:
   workflow_dispatch:
+
   schedule:
     - cron: "17,47 * * * *"
+
+concurrency:
+  # Stesso gruppo utilizzato dal workflow SwitchBot.
+  # Evita che i due workflow scrivano contemporaneamente sul main.
+  group: meteo-trezzano-main-writer
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -11,10 +18,13 @@ permissions:
 jobs:
   forecast:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Scarica previsioni MET Norway
         run: |
@@ -23,6 +33,7 @@ jobs:
           import urllib.request
 
           url = "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=45.42&lon=9.06"
+
           req = urllib.request.Request(
               url,
               headers={
@@ -33,8 +44,17 @@ jobs:
           with urllib.request.urlopen(req, timeout=30) as r:
               data = json.load(r)
 
-          with open("met-forecast.json", "w", encoding="utf-8") as f:
-              json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+          with open(
+              "met-forecast.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+              json.dump(
+                  data,
+                  f,
+                  ensure_ascii=False,
+                  separators=(",", ":")
+              )
           PY
 
       - name: Salva previsioni nel repository
@@ -50,4 +70,32 @@ jobs:
           fi
 
           git commit -m "Aggiorna previsioni MET Norway"
-          git push
+
+          # Aggiorna il branch locale prima del push.
+          # Questo evita errori se nel frattempo un altro workflow
+          # ha aggiornato il main.
+          for attempt in 1 2 3; do
+
+            echo "Tentativo push $attempt/3..."
+
+            if git fetch origin main && \
+               git rebase origin/main && \
+               git push origin HEAD:main; then
+
+              echo "Push completato correttamente."
+              exit 0
+
+            fi
+
+            echo "Push fallito al tentativo $attempt."
+
+            git rebase --abort 2>/dev/null || true
+
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((5 * attempt))
+            fi
+
+          done
+
+          echo "Impossibile completare il push dopo 3 tentativi."
+          exit 1
