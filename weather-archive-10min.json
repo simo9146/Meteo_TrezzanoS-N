@@ -25446,17 +25446,17 @@
     "time": "2026-09-14T16:20:00Z",
     "date": "2026-09-14",
     "localTime": "18:20",
-    "temperature": 30.38,
+    "temperature": 30.42,
     "humidity": 47.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-14T16:30:00Z",
+    "time": "2026-09-14T16:40:00Z",
     "date": "2026-09-14",
-    "localTime": "18:30",
-    "temperature": 30.26,
-    "humidity": 46.8,
+    "localTime": "18:40",
+    "temperature": 30.1,
+    "humidity": 46.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
