@@ -25266,26 +25266,26 @@
     "time": "2026-09-14T11:20:00Z",
     "date": "2026-09-14",
     "localTime": "13:20",
-    "temperature": 26.42,
+    "temperature": 26.62,
     "humidity": 58.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-14T11:30:00Z",
+    "time": "2026-09-14T11:40:00Z",
     "date": "2026-09-14",
-    "localTime": "13:30",
-    "temperature": 26.8,
-    "humidity": 56.6,
+    "localTime": "13:40",
+    "temperature": 26.84,
+    "humidity": 55.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-14T11:50:00Z",
+    "time": "2026-09-14T12:00:00Z",
     "date": "2026-09-14",
-    "localTime": "13:50",
-    "temperature": 27.12,
-    "humidity": 57.8,
+    "localTime": "14:00",
+    "temperature": 27.32,
+    "humidity": 56.6,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
