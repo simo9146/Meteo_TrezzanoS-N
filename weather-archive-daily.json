@@ -102,5 +102,13 @@
     "max": 28.5,
     "maxTime": "16:10",
     "method": "min_10min_max_10min_normalized_UR_plus_3"
+  },
+  {
+    "date": "2026-09-14",
+    "min": 15.79,
+    "minTime": "07:10",
+    "max": 30.33,
+    "maxTime": "17:00",
+    "method": "min_10min_max_10min_normalized_UR_plus_3"
   }
 ]
