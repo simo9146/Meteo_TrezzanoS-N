@@ -25392,7 +25392,7 @@
     "time": "2026-09-14T14:50:00Z",
     "date": "2026-09-14",
     "localTime": "16:50",
-    "temperature": 31.06,
+    "temperature": 31.42,
     "humidity": 42.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
