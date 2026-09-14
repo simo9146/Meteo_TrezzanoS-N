@@ -24708,8 +24708,8 @@
     "time": "2026-09-14T00:20:00Z",
     "date": "2026-09-14",
     "localTime": "02:20",
-    "temperature": 19.26,
-    "humidity": 84.2,
+    "temperature": 19.1,
+    "humidity": 85.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
