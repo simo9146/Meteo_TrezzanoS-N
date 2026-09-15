@@ -26211,7 +26211,7 @@
     "time": "2026-09-15T13:50:00Z",
     "date": "2026-09-15",
     "localTime": "15:50",
-    "temperature": 28.74,
+    "temperature": 28.5,
     "humidity": 50.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
