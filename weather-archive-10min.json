@@ -26355,8 +26355,8 @@
     "time": "2026-09-15T17:50:00Z",
     "date": "2026-09-15",
     "localTime": "19:50",
-    "temperature": 24.26,
-    "humidity": 60.8,
+    "temperature": 23.96,
+    "humidity": 61.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
