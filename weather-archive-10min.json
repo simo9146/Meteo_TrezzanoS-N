@@ -26469,20 +26469,20 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-15T21:00:00Z",
+    "time": "2026-09-15T21:10:00Z",
     "date": "2026-09-15",
-    "localTime": "23:00",
-    "temperature": 20.36,
-    "humidity": 75.8,
+    "localTime": "23:10",
+    "temperature": 20.24,
+    "humidity": 77.2,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-15T21:20:00Z",
+    "time": "2026-09-15T21:30:00Z",
     "date": "2026-09-15",
-    "localTime": "23:20",
-    "temperature": 20.12,
-    "humidity": 78.0,
+    "localTime": "23:30",
+    "temperature": 19.76,
+    "humidity": 78.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
