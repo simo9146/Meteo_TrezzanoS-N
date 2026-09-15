@@ -26499,26 +26499,26 @@
     "time": "2026-09-15T21:50:00Z",
     "date": "2026-09-15",
     "localTime": "23:50",
-    "temperature": 20.2,
-    "humidity": 79.0,
+    "temperature": 19.84,
+    "humidity": 79.4,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-15T22:00:00Z",
-    "date": "2026-09-15",
-    "localTime": "00:00",
-    "temperature": 19.48,
-    "humidity": 80.4,
-    "samples": 5,
-    "method": "mean_5_samples_2min"
-  },
-  {
-    "time": "2026-09-15T22:20:00Z",
+    "time": "2026-09-15T22:10:00Z",
     "date": "2026-09-16",
-    "localTime": "00:20",
-    "temperature": 19.22,
-    "humidity": 81.4,
+    "localTime": "00:10",
+    "temperature": 19.3,
+    "humidity": 81.0,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-09-15T22:30:00Z",
+    "date": "2026-09-16",
+    "localTime": "00:30",
+    "temperature": 19.14,
+    "humidity": 82.2,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
