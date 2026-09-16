@@ -4805,33 +4805,38 @@
     "humidity": 49.0
   },
   {
-    "time": "2026-09-16T15:18:45.046110Z",
+    "time": "2026-09-16T15:10:26.961010Z",
+    "temperature": 29.08,
+    "humidity": 48.0
+  },
+  {
+    "time": "2026-09-16T15:27:00.581142Z",
     "temperature": 28.31,
     "humidity": 49.0
   },
   {
-    "time": "2026-09-16T15:35:17.435586Z",
-    "temperature": 28.47,
-    "humidity": 52.0
-  },
-  {
-    "time": "2026-09-16T15:51:52.539172Z",
-    "temperature": 28.11,
+    "time": "2026-09-16T15:43:36.204325Z",
+    "temperature": 28.7,
     "humidity": 49.0
   },
   {
-    "time": "2026-09-16T16:08:20.559779Z",
-    "temperature": 27.96,
+    "time": "2026-09-16T16:00:06.207247Z",
+    "temperature": 28.0,
+    "humidity": 53.0
+  },
+  {
+    "time": "2026-09-16T16:16:35.967838Z",
+    "temperature": 28.15,
     "humidity": 51.0
   },
   {
-    "time": "2026-09-16T16:24:52.578301Z",
-    "temperature": 27.56,
-    "humidity": 51.0
+    "time": "2026-09-16T16:33:31.170371Z",
+    "temperature": 27.3,
+    "humidity": 53.0
   },
   {
-    "time": "2026-09-16T16:41:44.795340Z",
-    "temperature": 26.72,
-    "humidity": 54.0
+    "time": "2026-09-16T16:49:59.251339Z",
+    "temperature": 26.44,
+    "humidity": 55.0
   }
 ]
