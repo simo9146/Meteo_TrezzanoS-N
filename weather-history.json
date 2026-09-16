@@ -1,10 +1,5 @@
 [
   {
-    "time": "2026-09-09T18:00:51.692983Z",
-    "temperature": 21.3,
-    "humidity": 79.0
-  },
-  {
     "time": "2026-09-09T18:10:24.563091Z",
     "temperature": 21.2,
     "humidity": 79.0
@@ -4805,23 +4800,28 @@
     "humidity": 55.0
   },
   {
-    "time": "2026-09-16T17:07:33.166101Z",
-    "temperature": 25.6,
-    "humidity": 58.0
+    "time": "2026-09-16T16:59:18.691943Z",
+    "temperature": 25.88,
+    "humidity": 57.0
   },
   {
-    "time": "2026-09-16T17:24:03.220889Z",
-    "temperature": 24.77,
+    "time": "2026-09-16T17:15:46.093488Z",
+    "temperature": 25.05,
+    "humidity": 61.0
+  },
+  {
+    "time": "2026-09-16T17:32:56.680651Z",
+    "temperature": 24.57,
     "humidity": 62.0
   },
   {
-    "time": "2026-09-16T17:41:12.833564Z",
-    "temperature": 24.38,
-    "humidity": 63.0
+    "time": "2026-09-16T17:49:35.002159Z",
+    "temperature": 24.22,
+    "humidity": 66.0
   },
   {
-    "time": "2026-09-16T17:57:53.797620Z",
-    "temperature": 23.93,
-    "humidity": 67.0
+    "time": "2026-09-16T18:06:10.844173Z",
+    "temperature": 23.76,
+    "humidity": 69.0
   }
 ]
