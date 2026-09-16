@@ -27075,17 +27075,17 @@
     "time": "2026-09-16T14:20:00Z",
     "date": "2026-09-16",
     "localTime": "16:20",
-    "temperature": 29.86,
+    "temperature": 29.62,
     "humidity": 44.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-16T14:30:00Z",
+    "time": "2026-09-16T14:40:00Z",
     "date": "2026-09-16",
-    "localTime": "16:30",
-    "temperature": 29.5,
-    "humidity": 44.0,
+    "localTime": "16:40",
+    "temperature": 29.18,
+    "humidity": 45.2,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
