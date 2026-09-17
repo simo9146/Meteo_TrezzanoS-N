@@ -27840,8 +27840,8 @@
     "time": "2026-09-17T11:50:00Z",
     "date": "2026-09-17",
     "localTime": "13:50",
-    "temperature": 23.0,
-    "humidity": 67.0,
+    "temperature": 23.12,
+    "humidity": 67.4,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
