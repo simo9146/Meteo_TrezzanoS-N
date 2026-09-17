@@ -27918,20 +27918,20 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T14:00:00Z",
+    "time": "2026-09-17T14:10:00Z",
     "date": "2026-09-17",
-    "localTime": "16:00",
-    "temperature": 23.16,
-    "humidity": 63.8,
+    "localTime": "16:10",
+    "temperature": 23.3,
+    "humidity": 63.6,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T14:20:00Z",
+    "time": "2026-09-17T14:30:00Z",
     "date": "2026-09-17",
-    "localTime": "16:20",
-    "temperature": 24.06,
-    "humidity": 62.8,
+    "localTime": "16:30",
+    "temperature": 24.22,
+    "humidity": 61.4,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
