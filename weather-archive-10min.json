@@ -27702,29 +27702,29 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T08:00:00Z",
+    "time": "2026-09-17T08:10:00Z",
     "date": "2026-09-17",
-    "localTime": "10:00",
-    "temperature": 20.7,
-    "humidity": 79.6,
-    "samples": 5,
-    "method": "mean_5_samples_2min"
-  },
-  {
-    "time": "2026-09-17T08:20:00Z",
-    "date": "2026-09-17",
-    "localTime": "10:20",
-    "temperature": 21.54,
+    "localTime": "10:10",
+    "temperature": 21.12,
     "humidity": 78.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T08:40:00Z",
+    "time": "2026-09-17T08:30:00Z",
     "date": "2026-09-17",
-    "localTime": "10:40",
-    "temperature": 21.66,
-    "humidity": 73.8,
+    "localTime": "10:30",
+    "temperature": 21.6,
+    "humidity": 76.2,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-09-17T08:50:00Z",
+    "date": "2026-09-17",
+    "localTime": "10:50",
+    "temperature": 21.7,
+    "humidity": 73.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
