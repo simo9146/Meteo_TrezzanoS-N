@@ -28237,6 +28237,15 @@
     "date": "2026-09-18",
     "localTime": "00:50",
     "temperature": 20.3,
+    "humidity": 72.6,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-09-17T23:00:00Z",
+    "date": "2026-09-18",
+    "localTime": "01:00",
+    "temperature": 20.3,
     "humidity": 73.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
