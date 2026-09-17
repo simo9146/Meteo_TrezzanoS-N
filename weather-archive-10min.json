@@ -27630,11 +27630,11 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T06:00:00Z",
+    "time": "2026-09-17T06:10:00Z",
     "date": "2026-09-17",
-    "localTime": "08:00",
-    "temperature": 20.04,
-    "humidity": 79.2,
+    "localTime": "08:10",
+    "temperature": 19.76,
+    "humidity": 80.8,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
