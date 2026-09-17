@@ -27990,11 +27990,11 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T16:00:00Z",
+    "time": "2026-09-17T16:10:00Z",
     "date": "2026-09-17",
-    "localTime": "18:00",
-    "temperature": 22.88,
-    "humidity": 62.0,
+    "localTime": "18:10",
+    "temperature": 22.52,
+    "humidity": 62.6,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
