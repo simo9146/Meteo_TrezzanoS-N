@@ -28026,11 +28026,11 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T17:00:00Z",
+    "time": "2026-09-17T17:10:00Z",
     "date": "2026-09-17",
-    "localTime": "19:00",
-    "temperature": 21.78,
-    "humidity": 66.6,
+    "localTime": "19:10",
+    "temperature": 21.7,
+    "humidity": 67.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
