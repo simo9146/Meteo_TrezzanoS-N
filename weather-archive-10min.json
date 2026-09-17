@@ -27522,18 +27522,18 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T03:00:00Z",
+    "time": "2026-09-17T03:10:00Z",
     "date": "2026-09-17",
-    "localTime": "05:00",
-    "temperature": 20.42,
-    "humidity": 74.0,
+    "localTime": "05:10",
+    "temperature": 20.26,
+    "humidity": 74.2,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T03:20:00Z",
+    "time": "2026-09-17T03:30:00Z",
     "date": "2026-09-17",
-    "localTime": "05:20",
+    "localTime": "05:30",
     "temperature": 20.1,
     "humidity": 75.0,
     "samples": 5,
