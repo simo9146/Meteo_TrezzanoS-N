@@ -27954,10 +27954,10 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T15:00:00Z",
+    "time": "2026-09-17T15:10:00Z",
     "date": "2026-09-17",
-    "localTime": "17:00",
-    "temperature": 23.7,
+    "localTime": "17:10",
+    "temperature": 23.62,
     "humidity": 61.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
