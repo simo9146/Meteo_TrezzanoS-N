@@ -28125,18 +28125,18 @@
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T19:50:00Z",
+    "time": "2026-09-17T20:00:00Z",
     "date": "2026-09-17",
-    "localTime": "21:50",
-    "temperature": 21.0,
+    "localTime": "22:00",
+    "temperature": 20.84,
     "humidity": 69.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-17T20:10:00Z",
+    "time": "2026-09-17T20:20:00Z",
     "date": "2026-09-17",
-    "localTime": "22:10",
+    "localTime": "22:20",
     "temperature": 20.8,
     "humidity": 69.0,
     "samples": 5,
