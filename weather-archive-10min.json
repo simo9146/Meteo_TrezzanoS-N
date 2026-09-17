@@ -27876,7 +27876,7 @@
     "time": "2026-09-17T12:50:00Z",
     "date": "2026-09-17",
     "localTime": "14:50",
-    "temperature": 22.5,
+    "temperature": 22.62,
     "humidity": 66.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
