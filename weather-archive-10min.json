@@ -28749,17 +28749,26 @@
     "time": "2026-09-18T13:20:00Z",
     "date": "2026-09-18",
     "localTime": "15:20",
-    "temperature": 26.14,
-    "humidity": 51.4,
+    "temperature": 26.36,
+    "humidity": 53.4,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-18T13:40:00Z",
+    "time": "2026-09-18T13:30:00Z",
     "date": "2026-09-18",
-    "localTime": "15:40",
-    "temperature": 25.46,
-    "humidity": 53.2,
+    "localTime": "15:30",
+    "temperature": 25.58,
+    "humidity": 53.0,
+    "samples": 5,
+    "method": "mean_5_samples_2min"
+  },
+  {
+    "time": "2026-09-18T13:50:00Z",
+    "date": "2026-09-18",
+    "localTime": "15:50",
+    "temperature": 25.3,
+    "humidity": 54.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
@@ -28767,17 +28776,17 @@
     "time": "2026-09-18T14:00:00Z",
     "date": "2026-09-18",
     "localTime": "16:00",
-    "temperature": 25.38,
-    "humidity": 54.4,
+    "temperature": 25.88,
+    "humidity": 52.2,
     "samples": 5,
     "method": "mean_5_samples_2min"
   },
   {
-    "time": "2026-09-18T14:10:00Z",
+    "time": "2026-09-18T14:20:00Z",
     "date": "2026-09-18",
-    "localTime": "16:10",
-    "temperature": 26.38,
-    "humidity": 51.6,
+    "localTime": "16:20",
+    "temperature": 27.2,
+    "humidity": 51.0,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
