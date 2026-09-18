@@ -28911,8 +28911,8 @@
     "time": "2026-09-18T17:50:00Z",
     "date": "2026-09-18",
     "localTime": "19:50",
-    "temperature": 22.84,
-    "humidity": 60.8,
+    "temperature": 22.68,
+    "humidity": 61.6,
     "samples": 5,
     "method": "mean_5_samples_2min"
   }
