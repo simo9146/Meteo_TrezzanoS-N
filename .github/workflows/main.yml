@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
 
 concurrency:
   # Stesso gruppo utilizzato dal workflow MET Norway.
@@ -18,7 +18,7 @@ permissions:
 jobs:
   update-weather:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
 
     env:
       SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
@@ -31,7 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Aggiorna Home e raccogli i campioni per l'Archivio
+      - name: Aggiorna Home e raccogli campioni per l'Archivio
         run: |
           python - <<'PY'
           import os
@@ -53,19 +53,27 @@ jobs:
           DEVICE_ID = os.environ["DEVICE_ID"]
 
           ROME = ZoneInfo("Europe/Rome")
-          API_URL = f"https://api.switch-bot.com/v1.1/devices/{DEVICE_ID}/status"
+
+          API_URL = (
+              f"https://api.switch-bot.com/v1.1/"
+              f"devices/{DEVICE_ID}/status"
+          )
 
           NORMALIZATION_START_DATE = "2026-09-11"
           ARCHIVE_START_DATE = "2026-09-01"
+
+          # +3 punti percentuali di UR.
           UR_CORRECTION = 3.0
 
           # ============================================================
-          # CONFIGURAZIONE ARCHIVIO
+          # NUOVA LOGICA ARCHIVIO
           # ============================================================
 
           SLOT_MINUTES = 15
-          SAMPLE_COUNT = 5
-          SAMPLE_INTERVAL_SECONDS = 180
+          SAMPLE_INTERVAL_MINUTES = 5
+          SAMPLES_PER_SLOT = 3
+
+          SAMPLE_FILE = "weather-samples.json"
 
           # ============================================================
           # FUNZIONI GENERALI
@@ -100,9 +108,28 @@ jobs:
                   check=True
               )
 
+          def parse_iso(value):
+              try:
+                  return datetime.fromisoformat(
+                      str(value).replace("Z", "+00:00")
+                  )
+              except Exception:
+                  return None
+
+          # ============================================================
+          # SWITCHBOT
+          # ============================================================
+
           def switchbot_status():
+
               nonce = str(uuid.uuid4())
-              t = str(int(time.time() * 1000))
+
+              t = str(
+                  int(
+                      time.time() * 1000
+                  )
+              )
+
               message = TOKEN + t + nonce
 
               sign = base64.b64encode(
@@ -120,7 +147,8 @@ jobs:
                       "sign": sign,
                       "nonce": nonce,
                       "t": t,
-                      "Content-Type": "application/json; charset=utf8"
+                      "Content-Type":
+                          "application/json; charset=utf8"
                   }
               )
 
@@ -128,46 +156,58 @@ jobs:
                   req,
                   timeout=30
               ) as response:
+
                   payload = json.load(response)
 
               if payload.get("statusCode") != 100:
+
                   raise RuntimeError(
-                      f"SwitchBot API error: {payload.get('message')}"
+                      "SwitchBot API error: "
+                      f"{payload.get('message')}"
                   )
 
               body = payload.get("body") or {}
 
               return {
-                  "temperature": float(body["temperature"]),
-                  "humidity": float(body["humidity"]),
-                  "battery": body.get("battery"),
-                  "capturedAt": datetime.now(timezone.utc)
+                  "temperature": float(
+                      body["temperature"]
+                  ),
+                  "humidity": float(
+                      body["humidity"]
+                  ),
+                  "battery": body.get(
+                      "battery"
+                  ),
+                  "capturedAt":
+                      datetime.now(timezone.utc)
               }
 
-          def parse_iso(value):
-              try:
-                  return datetime.fromisoformat(
-                      str(value).replace("Z", "+00:00")
-                  )
-              except Exception:
-                  return None
+          # ============================================================
+          # NORMALIZZAZIONE
+          # ============================================================
 
           def normalize_temperature(
               temperature,
               humidity
           ):
+
               T1 = float(temperature)
               UR1 = float(humidity)
 
               if UR1 <= 0:
+
                   return (
                       T1,
                       max(
                           0.0,
-                          min(100.0, UR1)
+                          min(
+                              100.0,
+                              UR1
+                          )
                       )
                   )
 
+              # +3 punti percentuali di UR.
               UR2 = min(
                   UR1 + UR_CORRECTION,
                   100.0
@@ -184,9 +224,17 @@ jobs:
               )
 
               if E <= 0:
-                  return T1, UR2
 
-              Psat2 = E / UR2 * 100.0
+                  return (
+                      T1,
+                      UR2
+                  )
+
+              Psat2 = (
+                  E
+                  / UR2
+                  * 100.0
+              )
 
               x = math.log10(
                   Psat2 / 6.1078
@@ -197,55 +245,41 @@ jobs:
                   / (7.5 - x)
               )
 
-              return T2, UR2
+              return (
+                  T2,
+                  UR2
+              )
 
           # ============================================================
-          # CALCOLO SLOT 15 MINUTI
+          # CALCOLO SLOT
           # ============================================================
 
-          def get_archive_slot(first_sample_time):
-              """
-              Assegna il gruppo di 5 campioni al QUARTO D'ORA
-              successivo rispetto all'inizio del blocco.
+          def get_slot_start(dt):
 
-              Esempi:
-
-              10:00 -> slot 10:15
-              10:01 -> slot 10:15
-              10:07 -> slot 10:15
-              10:14 -> slot 10:15
-
-              10:15 -> slot 10:30
-              10:16 -> slot 10:30
-              """
-
-              local_time = first_sample_time.astimezone(ROME)
+              local_dt = dt.astimezone(
+                  ROME
+              )
 
               minute_block = (
-                  local_time.minute // SLOT_MINUTES
+                  local_dt.minute
+                  // SLOT_MINUTES
               ) * SLOT_MINUTES
 
-              block_start = local_time.replace(
+              return local_dt.replace(
                   minute=minute_block,
                   second=0,
                   microsecond=0
               )
 
-              block_end = (
-                  block_start
-                  + timedelta(minutes=SLOT_MINUTES)
-              )
-
-              return block_start, block_end
-
           # ============================================================
-          # COMMIT E PUSH
+          # COMMIT / PUSH
           # ============================================================
 
           def commit_and_push(
               files,
               message
           ):
+
               run_git(
                   "config",
                   "user.name",
@@ -268,9 +302,11 @@ jobs:
               )
 
               for file in files:
+
                   src = Path(file)
 
                   if src.exists():
+
                       (
                           backup_dir
                           / src.name
@@ -286,7 +322,7 @@ jobs:
                   try:
 
                       print(
-                          f"Sincronizzazione main - "
+                          "Sincronizzazione main - "
                           f"tentativo {attempt}/3"
                       )
 
@@ -310,6 +346,7 @@ jobs:
                           )
 
                           if backup.exists():
+
                               Path(file).write_text(
                                   backup.read_text(
                                       encoding="utf-8"
@@ -355,7 +392,7 @@ jobs:
                       )
 
                       print(
-                          f"Push riuscito al tentativo "
+                          "Push riuscito al tentativo "
                           f"{attempt}."
                       )
 
@@ -364,7 +401,7 @@ jobs:
                   except subprocess.CalledProcessError:
 
                       print(
-                          f"Push fallito al tentativo "
+                          "Push fallito al tentativo "
                           f"{attempt}/3."
                       )
 
@@ -401,29 +438,38 @@ jobs:
               )
 
           # ============================================================
-          # HOME
+          # 1. RILEVAZIONE SWITCHBOT
           # ============================================================
 
-          samples = []
+          reading = switchbot_status()
 
-          first = switchbot_status()
-          samples.append(first)
+          captured_at = reading[
+              "capturedAt"
+          ]
 
-          first_local = (
-              first["capturedAt"]
-              .astimezone(ROME)
+          local_dt = captured_at.astimezone(
+              ROME
           )
 
-          home_date = first_local.strftime(
+          home_date = local_dt.strftime(
               "%Y-%m-%d"
           )
 
-          home_time = first_local.strftime(
+          home_time = local_dt.strftime(
               "%H:%M"
           )
 
-          raw_temp = first["temperature"]
-          raw_humidity = first["humidity"]
+          # ============================================================
+          # 2. HOME
+          # ============================================================
+
+          raw_temp = reading[
+              "temperature"
+          ]
+
+          raw_humidity = reading[
+              "humidity"
+          ]
 
           if home_date >= NORMALIZATION_START_DATE:
 
@@ -440,26 +486,32 @@ jobs:
               home_humidity = raw_humidity
 
           current_data = {
+
               "temperature": round(
                   home_temp,
                   2
               ),
+
               "humidity": round(
                   home_humidity,
                   1
               ),
+
               "updatedAt": (
-                  first["capturedAt"]
+                  captured_at
                   .isoformat()
-                  .replace("+00:00", "Z")
+                  .replace(
+                      "+00:00",
+                      "Z"
+                  )
               )
           }
 
-          if first["battery"] is not None:
+          if reading["battery"] is not None:
 
-              current_data["battery"] = (
-                  first["battery"]
-              )
+              current_data[
+                  "battery"
+              ] = reading["battery"]
 
           write_json(
               "weather-data.json",
@@ -467,7 +519,7 @@ jobs:
           )
 
           # ============================================================
-          # STORICO HOME
+          # 3. STORICO HOME
           # ============================================================
 
           history = read_json(
@@ -475,19 +527,29 @@ jobs:
               []
           )
 
-          if not isinstance(history, list):
+          if not isinstance(
+              history,
+              list
+          ):
+
               history = []
 
           history.append({
+
               "time": (
-                  first["capturedAt"]
+                  captured_at
                   .isoformat()
-                  .replace("+00:00", "Z")
+                  .replace(
+                      "+00:00",
+                      "Z"
+                  )
               ),
+
               "temperature": round(
                   home_temp,
                   2
               ),
+
               "humidity": round(
                   home_humidity,
                   1
@@ -495,15 +557,22 @@ jobs:
           })
 
           cutoff = (
-              datetime.now(timezone.utc)
-              - timedelta(days=7)
+              datetime.now(
+                  timezone.utc
+              )
+              - timedelta(
+                  days=7
+              )
           )
 
           clean_history = []
 
           for row in history:
 
-              if not isinstance(row, dict):
+              if not isinstance(
+                  row,
+                  dict
+              ):
                   continue
 
               dt = parse_iso(
@@ -514,13 +583,17 @@ jobs:
                   dt is not None
                   and dt >= cutoff
               ):
-                  clean_history.append(row)
+
+                  clean_history.append(
+                      row
+                  )
 
           clean_history.sort(
-              key=lambda x: x.get(
-                  "time",
-                  ""
-              )
+              key=lambda x:
+                  x.get(
+                      "time",
+                      ""
+                  )
           )
 
           write_json(
@@ -529,7 +602,7 @@ jobs:
           )
 
           # ============================================================
-          # ESTREMI GIORNALIERI HOME
+          # 4. ESTREMI GIORNALIERI HOME
           # ============================================================
 
           daily = read_json(
@@ -537,7 +610,11 @@ jobs:
               []
           )
 
-          if not isinstance(daily, list):
+          if not isinstance(
+              daily,
+              list
+          ):
+
               daily = []
 
           today_row = next(
@@ -545,9 +622,13 @@ jobs:
                   row
                   for row in daily
                   if (
-                      isinstance(row, dict)
-                      and row.get("date")
-                      == home_date
+                      isinstance(
+                          row,
+                          dict
+                      )
+                      and row.get(
+                          "date"
+                      ) == home_date
                   )
               ),
               None
@@ -556,20 +637,32 @@ jobs:
           if today_row is None:
 
               today_row = {
-                  "date": home_date,
-                  "min": round(
-                      home_temp,
-                      2
-                  ),
-                  "minTime": home_time,
-                  "max": round(
-                      home_temp,
-                      2
-                  ),
-                  "maxTime": home_time
+
+                  "date":
+                      home_date,
+
+                  "min":
+                      round(
+                          home_temp,
+                          2
+                      ),
+
+                  "minTime":
+                      home_time,
+
+                  "max":
+                      round(
+                          home_temp,
+                          2
+                      ),
+
+                  "maxTime":
+                      home_time
               }
 
-              daily.append(today_row)
+              daily.append(
+                  today_row
+              )
 
           else:
 
@@ -580,9 +673,11 @@ jobs:
                   )
               ):
 
-                  today_row["min"] = round(
-                      home_temp,
-                      2
+                  today_row["min"] = (
+                      round(
+                          home_temp,
+                          2
+                      )
                   )
 
                   today_row["minTime"] = (
@@ -596,9 +691,11 @@ jobs:
                   )
               ):
 
-                  today_row["max"] = round(
-                      home_temp,
-                      2
+                  today_row["max"] = (
+                      round(
+                          home_temp,
+                          2
+                      )
                   )
 
                   today_row["maxTime"] = (
@@ -611,10 +708,11 @@ jobs:
               )
 
           daily.sort(
-              key=lambda x: x.get(
-                  "date",
-                  ""
-              )
+              key=lambda x:
+                  x.get(
+                      "date",
+                      ""
+                  )
           )
 
           write_json(
@@ -622,172 +720,305 @@ jobs:
               daily
           )
 
-          print(
-              f"HOME - "
-              f"{home_temp:.2f} °C / "
-              f"{home_humidity:.1f}% - "
-              f"{first['capturedAt'].isoformat()}"
+          # ============================================================
+          # 5. SALVA IL SINGOLO CAMPIONE
+          # ============================================================
+
+          samples = read_json(
+              SAMPLE_FILE,
+              []
           )
 
-          # ============================================================
-          # ARCHIVIO
-          #
-          # 5 CAMPIONI:
-          #
-          # 1° immediato
-          # 2° dopo 3 minuti
-          # 3° dopo 6 minuti
-          # 4° dopo 9 minuti
-          # 5° dopo 12 minuti
-          #
-          # Totale: circa 12 minuti.
-          # ============================================================
-
-          for i in range(
-              SAMPLE_COUNT - 1
+          if not isinstance(
+              samples,
+              list
           ):
 
-              time.sleep(
-                  SAMPLE_INTERVAL_SECONDS
-              )
+              samples = []
 
-              reading = switchbot_status()
+          samples.append({
 
-              samples.append(
-                  reading
-              )
-
-              print(
-                  f"ARCHIVIO - campione "
-                  f"{i + 2}/{SAMPLE_COUNT}: "
-                  f"{reading['temperature']:.2f} °C - "
-                  f"{reading['humidity']:.1f}% - "
-                  f"{reading['capturedAt'].isoformat()}"
-              )
-
-          # ============================================================
-          # MEDIA DELLO SLOT
-          # ============================================================
-
-          avg_temp = round(
-              sum(
-                  x["temperature"]
-                  for x in samples
-              ) / len(samples),
-              2
-          )
-
-          avg_humidity = round(
-              sum(
-                  x["humidity"]
-                  for x in samples
-              ) / len(samples),
-              1
-          )
-
-          # ============================================================
-          # SLOT RIGOROSAMENTE DA 15 MINUTI
-          # ============================================================
-
-          block_start, block_end = (
-              get_archive_slot(
-                  samples[0]["capturedAt"]
-              )
-          )
-
-          archive_date = (
-              block_start.strftime(
-                  "%Y-%m-%d"
-              )
-          )
-
-          # IMPORTANTE:
-          # localTime è sempre un quarto d'ora esatto:
-          #
-          # 09:15
-          # 09:30
-          # 09:45
-          # 10:00
-          # 10:15
-          # ecc.
-
-          archive_time = (
-              block_end.strftime(
-                  "%H:%M"
-              )
-          )
-
-          slot = {
               "time": (
-                  block_end
-                  .astimezone(timezone.utc)
+                  captured_at
                   .isoformat()
-                  .replace("+00:00", "Z")
+                  .replace(
+                      "+00:00",
+                      "Z"
+                  )
               ),
-              "date": archive_date,
-              "localTime": archive_time,
-              "temperature": avg_temp,
-              "humidity": avg_humidity,
-              "samples": len(samples),
-              "method": "mean_5_samples_3min"
-          }
+
+              "temperature":
+                  raw_temp,
+
+              "humidity":
+                  raw_humidity
+          })
+
+          # Manteniamo soltanto gli ultimi 2 giorni
+          # di campioni temporanei.
+
+          sample_cutoff = (
+              datetime.now(
+                  timezone.utc
+              )
+              - timedelta(
+                  days=2
+              )
+          )
+
+          clean_samples = []
+
+          for row in samples:
+
+              if not isinstance(
+                  row,
+                  dict
+              ):
+                  continue
+
+              dt = parse_iso(
+                  row.get("time")
+              )
+
+              if (
+                  dt is not None
+                  and dt >= sample_cutoff
+              ):
+
+                  clean_samples.append(
+                      row
+                  )
+
+          clean_samples.sort(
+              key=lambda x:
+                  x.get(
+                      "time",
+                      ""
+                  )
+          )
+
+          samples = clean_samples
 
           # ============================================================
-          # ARCHIVIO 15 MINUTI
+          # 6. CERCA SLOT COMPLETI DA 3 CAMPIONI
           # ============================================================
 
-          tenmin = read_json(
+          archive = read_json(
               "weather-archive-10min.json",
               []
           )
 
-          if not isinstance(tenmin, list):
-              tenmin = []
+          if not isinstance(
+              archive,
+              list
+          ):
 
-          # Elimina eventuale duplicato dello stesso slot.
+              archive = []
 
-          tenmin = [
-              row
-              for row in tenmin
-              if not (
-                  isinstance(row, dict)
-                  and row.get("time")
-                  == slot["time"]
+          existing_times = {
+              row.get("time")
+              for row in archive
+              if isinstance(
+                  row,
+                  dict
               )
-          ]
+          }
 
-          tenmin.append(
-              slot
-          )
+          slots_to_create = {}
 
-          tenmin.sort(
-              key=lambda x: x.get(
-                  "time",
-                  ""
+          for sample in samples:
+
+              sample_dt = parse_iso(
+                  sample.get("time")
               )
+
+              if sample_dt is None:
+                  continue
+
+              slot_start = get_slot_start(
+                  sample_dt
+              )
+
+              slot_end = (
+                  slot_start
+                  + timedelta(
+                      minutes=SLOT_MINUTES
+                  )
+              )
+
+              slot_key = (
+                  slot_start
+                  .astimezone(
+                      timezone.utc
+                  )
+                  .isoformat()
+                  .replace(
+                      "+00:00",
+                      "Z"
+                  )
+              )
+
+              if slot_key in existing_times:
+                  continue
+
+              slots_to_create.setdefault(
+                  slot_key,
+                  []
+              ).append(
+                  sample
+              )
+
+          # ============================================================
+          # 7. CREA GLI SLOT CON 3 CAMPIONI
+          # ============================================================
+
+          for slot_key, slot_samples in sorted(
+              slots_to_create.items()
+          ):
+
+              if len(slot_samples) < SAMPLES_PER_SLOT:
+
+                  continue
+
+              slot_samples.sort(
+                  key=lambda x:
+                      x.get(
+                          "time",
+                          ""
+                      )
+              )
+
+              # Prendiamo i primi 3 campioni
+              # dello slot.
+
+              selected = slot_samples[
+                  :SAMPLES_PER_SLOT
+              ]
+
+              avg_temp = round(
+                  sum(
+                      float(
+                          x["temperature"]
+                      )
+                      for x in selected
+                  )
+                  / SAMPLES_PER_SLOT,
+                  2
+              )
+
+              avg_humidity = round(
+                  sum(
+                      float(
+                          x["humidity"]
+                      )
+                      for x in selected
+                  )
+                  / SAMPLES_PER_SLOT,
+                  1
+              )
+
+              slot_start = (
+                  datetime.fromisoformat(
+                      slot_key.replace(
+                          "Z",
+                          "+00:00"
+                      )
+                  )
+                  .astimezone(
+                      ROME
+                  )
+              )
+
+              slot_end = (
+                  slot_start
+                  + timedelta(
+                      minutes=SLOT_MINUTES
+                  )
+              )
+
+              archive_date = (
+                  slot_start.strftime(
+                      "%Y-%m-%d"
+                  )
+              )
+
+              archive_time = (
+                  slot_end.strftime(
+                      "%H:%M"
+                  )
+              )
+
+              slot = {
+
+                  "time": slot_key,
+
+                  "date":
+                      archive_date,
+
+                  "localTime":
+                      archive_time,
+
+                  "temperature":
+                      avg_temp,
+
+                  "humidity":
+                      avg_humidity,
+
+                  "samples":
+                      SAMPLES_PER_SLOT,
+
+                  "method":
+                      "mean_3_samples_5min"
+              }
+
+              archive.append(
+                  slot
+              )
+
+              existing_times.add(
+                  slot_key
+              )
+
+              print(
+                  "ARCHIVIO - creato slot "
+                  f"{archive_date} "
+                  f"{archive_time} "
+                  f"=> {avg_temp:.2f} °C "
+                  f"/ {avg_humidity:.1f}% "
+                  f"({SAMPLES_PER_SLOT} campioni)"
+              )
+
+          archive.sort(
+              key=lambda x:
+                  x.get(
+                      "time",
+                      ""
+                  )
           )
 
           write_json(
               "weather-archive-10min.json",
-              tenmin
+              archive
           )
 
           # ============================================================
-          # ARCHIVIO GIORNALIERO
-          #
-          # MIN/MAX SUGLI SLOT DA 15 MINUTI
-          # NORMALIZZATI
+          # 8. ARCHIVIO GIORNALIERO
           # ============================================================
 
           today = datetime.now(
               ROME
-          ).strftime("%Y-%m-%d")
+          ).strftime(
+              "%Y-%m-%d"
+          )
 
           archive_daily = {}
 
-          for row in tenmin:
+          for row in archive:
 
-              if not isinstance(row, dict):
+              if not isinstance(
+                  row,
+                  dict
+              ):
                   continue
 
               date = row.get(
@@ -815,6 +1046,11 @@ jobs:
 
                   continue
 
+              # ========================================================
+              # NORMALIZZAZIONE ARCHIVIO
+              # +3 PUNTI UR
+              # ========================================================
+
               normalized_temp, corrected_humidity = (
                   normalize_temperature(
                       raw_temperature,
@@ -840,20 +1076,34 @@ jobs:
               if date not in archive_daily:
 
                   archive_daily[date] = {
-                      "date": date,
-                      "min": normalized_temp,
-                      "minTime": local_time,
-                      "max": normalized_temp,
-                      "maxTime": local_time,
-                      "method": (
-                          "min_15min_max_15min_"
-                          "normalized_UR_plus_3"
-                      )
+
+                      "date":
+                          date,
+
+                      "min":
+                          normalized_temp,
+
+                      "minTime":
+                          local_time,
+
+                      "max":
+                          normalized_temp,
+
+                      "maxTime":
+                          local_time,
+
+                      "method":
+                          (
+                              "min_15min_max_15min_"
+                              "normalized_UR_plus_3"
+                          )
                   }
 
               else:
 
-                  day = archive_daily[date]
+                  day = archive_daily[
+                      date
+                  ]
 
                   if normalized_temp < float(
                       day["min"]
@@ -881,7 +1131,8 @@ jobs:
 
           archive_daily_list = sorted(
               archive_daily.values(),
-              key=lambda x: x["date"]
+              key=lambda x:
+                  x["date"]
           )
 
           write_json(
@@ -890,24 +1141,23 @@ jobs:
           )
 
           # ============================================================
-          # LOG FINALE
+          # 9. LOG
           # ============================================================
 
           print(
-              f"ARCHIVIO - slot "
-              f"{block_start.strftime('%H:%M')}-"
-              f"{block_end.strftime('%H:%M')} "
-              f"=> {avg_temp:.2f} °C "
-              f"({len(samples)} campioni)"
+              "HOME - "
+              f"{home_temp:.2f} °C / "
+              f"{home_humidity:.1f}% - "
+              f"{captured_at.isoformat()}"
           )
 
           print(
-              f"ARCHIVIO - localTime salvato: "
-              f"{archive_time}"
+              "CAMPIONI TEMPORANEI - "
+              f"{len(samples)}"
           )
 
           # ============================================================
-          # UN SOLO COMMIT/PUSH FINALE
+          # 10. COMMIT / PUSH
           # ============================================================
 
           commit_and_push(
@@ -916,7 +1166,8 @@ jobs:
                   "weather-history.json",
                   "weather-daily.json",
                   "weather-archive-10min.json",
-                  "weather-archive-daily.json"
+                  "weather-archive-daily.json",
+                  SAMPLE_FILE
               ],
               "Update SwitchBot weather data"
           )
