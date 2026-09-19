@@ -41,6 +41,8 @@ jobs:
           import base64
           import urllib.request
           import subprocess
+          import math
+
           from pathlib import Path
           from datetime import datetime, timedelta, timezone
           from zoneinfo import ZoneInfo
@@ -56,26 +58,37 @@ jobs:
               f"devices/{DEVICE_ID}/status"
           )
 
+          # ============================================================
+          # CONFIGURAZIONE NORMALIZZAZIONE
+          # ============================================================
+
           NORMALIZATION_START_DATE = "2026-09-11"
 
-          # Correzione umidità: +3 punti percentuali
+          # +3 punti percentuali di umidità relativa
           UR_CORRECTION = 3.0
 
           # ============================================================
-          # RIPARAZIONE UNA TANTUM DEL DATO ERRATO DEL 19/09/2026
+          # CORREZIONE UNA TANTUM DEL DATO ERRATO 7,2 °C
           # ============================================================
 
           REPAIR_DATE = "2026-09-19"
-          REPAIR_BAD_TEMPERATURE_MAX = 10.0
+          REPAIR_BAD_TEMPERATURE = 7.2
+
+          # ============================================================
+          # FUNZIONI FILE
+          # ============================================================
 
           def read_json(path, default):
               p = Path(path)
+
               if not p.exists():
                   return default
 
               try:
                   return json.loads(
-                      p.read_text(encoding="utf-8")
+                      p.read_text(
+                          encoding="utf-8"
+                      )
                   )
               except Exception:
                   return default
@@ -90,21 +103,25 @@ jobs:
                   encoding="utf-8"
               )
 
+          def parse_iso(value):
+              try:
+                  return datetime.fromisoformat(
+                      str(value).replace(
+                          "Z",
+                          "+00:00"
+                      )
+                  )
+              except Exception:
+                  return None
+
           def run_git(*args):
               subprocess.run(
                   ["git", *args],
                   check=True
               )
 
-          def parse_iso(value):
-              try:
-                  return datetime.fromisoformat(
-                      str(value).replace("Z", "+00:00")
-                  )
-              except Exception:
-                  return None
-
           def commit_and_push(files, message):
+
               run_git(
                   "config",
                   "user.name",
@@ -117,11 +134,19 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
-              run_git("add", *files)
+              run_git(
+                  "add",
+                  *files
+              )
 
               changed = (
                   subprocess.run(
-                      ["git", "diff", "--cached", "--quiet"]
+                      [
+                          "git",
+                          "diff",
+                          "--cached",
+                          "--quiet"
+                      ]
                   ).returncode != 0
               )
 
@@ -132,7 +157,11 @@ jobs:
                   )
                   return
 
-              run_git("commit", "-m", message)
+              run_git(
+                  "commit",
+                  "-m",
+                  message
+              )
 
               run_git(
                   "pull",
@@ -148,60 +177,155 @@ jobs:
               )
 
           # ============================================================
-          # NORMALIZZAZIONE
+          # NORMALIZZAZIONE TERMOIGROMETRICA
+          #
+          # 1. Prende temperatura e UR originali SwitchBot.
+          # 2. Aumenta UR di 3 punti percentuali.
+          # 3. Calcola il punto di rugiada originale.
+          # 4. Mantiene lo stesso punto di rugiada.
+          # 5. Ricalcola la temperatura coerente con la nuova UR.
+          #
+          # La temperatura quindi VIENE modificata dalla normalizzazione.
           # ============================================================
 
-          def normalize_temperature(temperature, humidity):
-              """
-              NON modifica la temperatura.
-
-              Applica esclusivamente +3 punti percentuali
-              all'umidità, con limite massimo 100%.
-              """
+          def normalize_temperature(
+              temperature,
+              humidity
+          ):
 
               if humidity is None:
-                  return temperature, humidity
+                  return (
+                      temperature,
+                      humidity
+                  )
 
+              # UR corretta +3 punti percentuali
               corrected_humidity = min(
                   humidity + UR_CORRECTION,
                   100.0
               )
 
-              return temperature, corrected_humidity
+              # Se non è possibile calcolare la correzione,
+              # manteniamo la temperatura originale.
+              if humidity <= 0:
+                  return (
+                      temperature,
+                      corrected_humidity
+                  )
+
+              try:
+
+                  # Costanti Magnus
+                  a = 17.62
+                  b = 243.12
+
+                  # ==================================================
+                  # Punto di rugiada con i dati originali
+                  # ==================================================
+
+                  gamma = (
+                      math.log(
+                          humidity / 100.0
+                      )
+                      + (
+                          a * temperature
+                          / (b + temperature)
+                      )
+                  )
+
+                  dew_point = (
+                      b * gamma
+                      / (a - gamma)
+                  )
+
+                  # ==================================================
+                  # Nuova temperatura con UR +3
+                  # mantenendo invariato il punto di rugiada
+                  # ==================================================
+
+                  gamma2 = (
+                      math.log(
+                          corrected_humidity / 100.0
+                      )
+                      + (
+                          a * dew_point
+                          / (b + dew_point)
+                      )
+                  )
+
+                  corrected_temperature = (
+                      b * gamma2
+                      / (a - gamma2)
+                  )
+
+                  return (
+                      corrected_temperature,
+                      corrected_humidity
+                  )
+
+              except Exception as error:
+
+                  print(
+                      "Errore nella normalizzazione:",
+                      error
+                  )
+
+                  return (
+                      temperature,
+                      corrected_humidity
+                  )
 
           # ============================================================
-          # SWITCHBOT
+          # SWITCHBOT API
           # ============================================================
 
           def switchbot_status():
 
-              nonce = str(uuid.uuid4())
+              nonce = str(
+                  uuid.uuid4()
+              )
 
               t = str(
-                  int(time.time() * 1000)
+                  int(
+                      time.time() * 1000
+                  )
               )
 
               message = (
-                  TOKEN +
-                  t +
-                  nonce
+                  TOKEN
+                  + t
+                  + nonce
               )
 
               sign = base64.b64encode(
                   hmac.new(
-                      SECRET.encode("utf-8"),
-                      message.encode("utf-8"),
+                      SECRET.encode(
+                          "utf-8"
+                      ),
+                      message.encode(
+                          "utf-8"
+                      ),
                       hashlib.sha256
                   ).digest()
-              ).decode("utf-8")
+              ).decode(
+                  "utf-8"
+              )
 
               req = urllib.request.Request(
                   API_URL,
                   headers={
-                      "Authorization": TOKEN,
-                      "sign": sign,
-                      "nonce": nonce,
-                      "t": t,
+                      "Authorization":
+                          TOKEN,
+
+                      "sign":
+                          sign,
+
+                      "nonce":
+                          nonce,
+
+                      "t":
+                          t,
+
                       "Content-Type":
                           "application/json; charset=utf8"
                   }
@@ -212,28 +336,42 @@ jobs:
                   timeout=30
               ) as response:
 
-                  payload = json.load(response)
+                  payload = json.load(
+                      response
+                  )
 
-              if payload.get("statusCode") != 100:
+              if payload.get(
+                  "statusCode"
+              ) != 100:
+
                   raise RuntimeError(
                       "SwitchBot API error: "
                       f"{payload.get('message')}"
                   )
 
-              body = payload.get("body") or {}
+              body = (
+                  payload.get("body")
+                  or {}
+              )
 
               return {
                   "temperature":
-                      float(body["temperature"]),
+                      float(
+                          body["temperature"]
+                      ),
 
                   "humidity":
-                      float(body["humidity"]),
+                      float(
+                          body["humidity"]
+                      ),
 
                   "battery":
                       body.get("battery"),
 
                   "capturedAt":
-                      datetime.now(timezone.utc)
+                      datetime.now(
+                          timezone.utc
+                      )
               }
 
           # ============================================================
@@ -244,28 +382,43 @@ jobs:
 
           first = switchbot_status()
 
-          samples.append(first)
+          samples.append(
+              first
+          )
 
           first_local = (
               first["capturedAt"]
               .astimezone(ROME)
           )
 
-          first_date = first_local.strftime(
-              "%Y-%m-%d"
+          first_date = (
+              first_local.strftime(
+                  "%Y-%m-%d"
+              )
           )
 
-          first_time = first_local.strftime(
-              "%H:%M"
+          first_time = (
+              first_local.strftime(
+                  "%H:%M"
+              )
           )
 
-          raw_temp = first["temperature"]
-          raw_humidity = first["humidity"]
+          raw_temp = (
+              first["temperature"]
+          )
 
-          # Normalizzazione:
-          # temperatura invariata
-          # umidità +3%
-          if first_date >= NORMALIZATION_START_DATE:
+          raw_humidity = (
+              first["humidity"]
+          )
+
+          # ============================================================
+          # NORMALIZZAZIONE HOME
+          # ============================================================
+
+          if (
+              first_date
+              >= NORMALIZATION_START_DATE
+          ):
 
               home_temp, home_humidity = (
                   normalize_temperature(
@@ -290,237 +443,20 @@ jobs:
           )
 
           print(
-              "HOME - "
+              "SWITCHBOT RAW - "
+              f"{raw_temp:.2f} °C / "
+              f"{raw_humidity:.1f}%"
+          )
+
+          print(
+              "HOME NORMALIZZATA - "
               f"{home_temp:.2f} °C / "
               f"{home_humidity:.1f}% - "
               f"{first['capturedAt'].isoformat()}"
           )
 
           # ============================================================
-          # HISTORY
-          # ============================================================
-
-          history = read_json(
-              "weather-history.json",
-              []
-          )
-
-          if not isinstance(history, list):
-              history = []
-
-          history.append({
-              "time":
-                  first["capturedAt"]
-                  .isoformat()
-                  .replace("+00:00", "Z"),
-
-              "temperature":
-                  home_temp,
-
-              "humidity":
-                  home_humidity
-          })
-
-          # ============================================================
-          # RIPARAZIONE DEL VALORE 7,2 °C
-          #
-          # Rimuove dalla giornata 19/09/2026 eventuali valori
-          # chiaramente anomali inferiori o uguali a 10 °C.
-          # È una correzione una tantum per il dato errato.
-          # ============================================================
-
-          repaired_history = []
-
-          for row in history:
-
-              if not isinstance(row, dict):
-                  continue
-
-              row_time = parse_iso(
-                  row.get("time")
-              )
-
-              if row_time is None:
-                  continue
-
-              row_local = row_time.astimezone(
-                  ROME
-              )
-
-              row_date = row_local.strftime(
-                  "%Y-%m-%d"
-              )
-
-              row_temp = row.get(
-                  "temperature"
-              )
-
-              if (
-                  row_date == REPAIR_DATE
-                  and isinstance(
-                      row_temp,
-                      (int, float)
-                  )
-                  and row_temp <=
-                      REPAIR_BAD_TEMPERATURE_MAX
-              ):
-
-                  print(
-                      "RIPARAZIONE: rimosso "
-                      f"dato anomalo {row_temp} °C "
-                      f"del {row_date} "
-                      f"alle {row_local.strftime('%H:%M')}"
-                  )
-
-                  continue
-
-              repaired_history.append(row)
-
-          history = repaired_history
-
-          # Mantieni solo gli ultimi 7 giorni
-
-          cutoff = (
-              datetime.now(timezone.utc)
-              - timedelta(days=7)
-          )
-
-          clean_history = []
-
-          for row in history:
-
-              dt = parse_iso(
-                  row.get("time")
-              )
-
-              if (
-                  dt is not None
-                  and dt >= cutoff
-              ):
-                  clean_history.append(row)
-
-          clean_history.sort(
-              key=lambda x: x.get(
-                  "time",
-                  ""
-              )
-          )
-
-          write_json(
-              "weather-history.json",
-              clean_history
-          )
-
-          # ============================================================
-          # DAILY HOME
-          #
-          # Il giorno corrente viene ricalcolato dalla history pulita.
-          # Questo elimina automaticamente la minima errata di 7,2 °C.
-          # ============================================================
-
-          daily = read_json(
-              "weather-daily.json",
-              []
-          )
-
-          if not isinstance(daily, list):
-              daily = []
-
-          today_rows = []
-
-          for row in clean_history:
-
-              dt = parse_iso(
-                  row.get("time")
-              )
-
-              if dt is None:
-                  continue
-
-              local_dt = dt.astimezone(
-                  ROME
-              )
-
-              if (
-                  local_dt.strftime("%Y-%m-%d")
-                  == first_date
-              ):
-
-                  temp = row.get(
-                      "temperature"
-                  )
-
-                  if isinstance(
-                      temp,
-                      (int, float)
-                  ):
-                      today_rows.append(
-                          (
-                              float(temp),
-                              local_dt
-                          )
-                      )
-
-          if today_rows:
-
-              min_temp, min_dt = min(
-                  today_rows,
-                  key=lambda x: x[0]
-              )
-
-              max_temp, max_dt = max(
-                  today_rows,
-                  key=lambda x: x[0]
-              )
-
-              new_today = {
-                  "date": first_date,
-                  "min": round(
-                      min_temp,
-                      2
-                  ),
-                  "minTime":
-                      min_dt.strftime(
-                          "%H:%M"
-                      ),
-                  "max": round(
-                      max_temp,
-                      2
-                  ),
-                  "maxTime":
-                      max_dt.strftime(
-                          "%H:%M"
-                      )
-              }
-
-              daily = [
-                  row
-                  for row in daily
-                  if not (
-                      isinstance(row, dict)
-                      and row.get("date")
-                      == first_date
-                  )
-              ]
-
-              daily.append(
-                  new_today
-              )
-
-          daily.sort(
-              key=lambda x: x.get(
-                  "date",
-                  ""
-              )
-          )
-
-          write_json(
-              "weather-daily.json",
-              daily
-          )
-
-          # ============================================================
-          # PUSH HOME
+          # WEATHER DATA HOME
           # ============================================================
 
           current_data = {
@@ -549,6 +485,265 @@ jobs:
               current_data
           )
 
+          # ============================================================
+          # HISTORY
+          # ============================================================
+
+          history = read_json(
+              "weather-history.json",
+              []
+          )
+
+          if not isinstance(
+              history,
+              list
+          ):
+              history = []
+
+          history.append({
+              "time":
+                  first["capturedAt"]
+                  .isoformat()
+                  .replace(
+                      "+00:00",
+                      "Z"
+                  ),
+
+              "temperature":
+                  home_temp,
+
+              "humidity":
+                  home_humidity
+          })
+
+          # ============================================================
+          # RIMOZIONE DEL VECCHIO 7,2 °C
+          #
+          # Rimuove esclusivamente il valore 7.2 °C
+          # dalla giornata del 19/09/2026.
+          # ============================================================
+
+          repaired_history = []
+
+          for row in history:
+
+              if not isinstance(
+                  row,
+                  dict
+              ):
+                  continue
+
+              row_time = parse_iso(
+                  row.get("time")
+              )
+
+              row_temp = row.get(
+                  "temperature"
+              )
+
+              if (
+                  row_time is not None
+                  and row_time
+                  .astimezone(ROME)
+                  .strftime("%Y-%m-%d")
+                  == REPAIR_DATE
+                  and isinstance(
+                      row_temp,
+                      (int, float)
+                  )
+                  and abs(
+                      float(row_temp)
+                      - REPAIR_BAD_TEMPERATURE
+                  ) < 0.01
+              ):
+
+                  print(
+                      "RIPARAZIONE: rimosso "
+                      "vecchio dato anomalo "
+                      f"{row_temp} °C"
+                  )
+
+                  continue
+
+              repaired_history.append(
+                  row
+              )
+
+          history = repaired_history
+
+          # ============================================================
+          # MANTIENI SOLO ULTIMI 7 GIORNI
+          # ============================================================
+
+          cutoff = (
+              datetime.now(
+                  timezone.utc
+              )
+              - timedelta(
+                  days=7
+              )
+          )
+
+          clean_history = []
+
+          for row in history:
+
+              dt = parse_iso(
+                  row.get("time")
+              )
+
+              if (
+                  dt is not None
+                  and dt >= cutoff
+              ):
+
+                  clean_history.append(
+                      row
+                  )
+
+          clean_history.sort(
+              key=lambda x:
+                  x.get(
+                      "time",
+                      ""
+                  )
+          )
+
+          write_json(
+              "weather-history.json",
+              clean_history
+          )
+
+          # ============================================================
+          # DAILY HOME
+          # ============================================================
+
+          daily = read_json(
+              "weather-daily.json",
+              []
+          )
+
+          if not isinstance(
+              daily,
+              list
+          ):
+              daily = []
+
+          # Ricalcolo completo del giorno corrente
+          # dalla history già ripulita.
+
+          today_rows = []
+
+          for row in clean_history:
+
+              dt = parse_iso(
+                  row.get("time")
+              )
+
+              if dt is None:
+                  continue
+
+              local_dt = dt.astimezone(
+                  ROME
+              )
+
+              if (
+                  local_dt.strftime(
+                      "%Y-%m-%d"
+                  )
+                  == first_date
+              ):
+
+                  temp = row.get(
+                      "temperature"
+                  )
+
+                  if isinstance(
+                      temp,
+                      (int, float)
+                  ):
+
+                      today_rows.append(
+                          (
+                              float(temp),
+                              local_dt
+                          )
+                      )
+
+          if today_rows:
+
+              min_temp, min_dt = min(
+                  today_rows,
+                  key=lambda x: x[0]
+              )
+
+              max_temp, max_dt = max(
+                  today_rows,
+                  key=lambda x: x[0]
+              )
+
+              new_today = {
+                  "date":
+                      first_date,
+
+                  "min":
+                      round(
+                          min_temp,
+                          2
+                      ),
+
+                  "minTime":
+                      min_dt.strftime(
+                          "%H:%M"
+                      ),
+
+                  "max":
+                      round(
+                          max_temp,
+                          2
+                      ),
+
+                  "maxTime":
+                      max_dt.strftime(
+                          "%H:%M"
+                      )
+              }
+
+              daily = [
+                  row
+                  for row in daily
+                  if not (
+                      isinstance(
+                          row,
+                          dict
+                      )
+                      and row.get(
+                          "date"
+                      ) == first_date
+                  )
+              ]
+
+              daily.append(
+                  new_today
+              )
+
+          daily.sort(
+              key=lambda x:
+                  x.get(
+                      "date",
+                      ""
+                  )
+          )
+
+          write_json(
+              "weather-daily.json",
+              daily
+          )
+
+          # ============================================================
+          # PUSH HOME
+          # ============================================================
+
           commit_and_push(
               [
                   "weather-data.json",
@@ -559,11 +754,7 @@ jobs:
           )
 
           # ============================================================
-          # ARCHIVIO
-          #
-          # 5 rilevazioni:
-          # 1 subito
-          # + 4 ogni 2 minuti
+          # 4 LETTURE AGGIUNTIVE OGNI 2 MINUTI
           # ============================================================
 
           for i in range(4):
@@ -619,7 +810,9 @@ jobs:
 
           block_end = (
               block_start
-              + timedelta(minutes=10)
+              + timedelta(
+                  minutes=10
+              )
           )
 
           archive_date = (
@@ -634,10 +827,64 @@ jobs:
               )
           )
 
+          # ============================================================
+          # NORMALIZZAZIONE DELLA MEDIA
+          # ============================================================
+
+          if (
+              archive_date
+              >= NORMALIZATION_START_DATE
+          ):
+
+              normalized_archive_temp, normalized_archive_humidity = (
+                  normalize_temperature(
+                      avg_temp,
+                      avg_humidity
+                  )
+              )
+
+          else:
+
+              normalized_archive_temp = (
+                  avg_temp
+              )
+
+              normalized_archive_humidity = (
+                  avg_humidity
+              )
+
+          normalized_archive_temp = round(
+              normalized_archive_temp,
+              2
+          )
+
+          normalized_archive_humidity = round(
+              normalized_archive_humidity,
+              1
+          )
+
+          print(
+              "ARCHIVIO RAW - "
+              f"{avg_temp:.2f} °C / "
+              f"{avg_humidity:.1f}%"
+          )
+
+          print(
+              "ARCHIVIO NORMALIZZATO - "
+              f"{normalized_archive_temp:.2f} °C / "
+              f"{normalized_archive_humidity:.1f}%"
+          )
+
+          # ============================================================
+          # ARCHIVIO 10 MINUTI
+          # ============================================================
+
           slot = {
               "time":
                   block_end
-                  .astimezone(timezone.utc)
+                  .astimezone(
+                      timezone.utc
+                  )
                   .isoformat()
                   .replace(
                       "+00:00",
@@ -651,21 +898,17 @@ jobs:
                   archive_time,
 
               "temperature":
-                  avg_temp,
+                  normalized_archive_temp,
 
               "humidity":
-                  avg_humidity,
+                  normalized_archive_humidity,
 
               "samples":
                   len(samples),
 
               "method":
-                  "mean_5_samples_2min"
+                  "mean_5_samples_2min_normalized_UR_plus_3"
           }
-
-          # ============================================================
-          # ARCHIVE 10 MIN
-          # ============================================================
 
           tenmin = read_json(
               "weather-archive-10min.json",
@@ -682,19 +925,26 @@ jobs:
               row
               for row in tenmin
               if not (
-                  isinstance(row, dict)
-                  and row.get("time")
-                  == slot["time"]
+                  isinstance(
+                      row,
+                      dict
+                  )
+                  and row.get(
+                      "time"
+                  ) == slot["time"]
               )
           ]
 
-          tenmin.append(slot)
+          tenmin.append(
+              slot
+          )
 
           tenmin.sort(
-              key=lambda x: x.get(
-                  "time",
-                  ""
-              )
+              key=lambda x:
+                  x.get(
+                      "time",
+                      ""
+                  )
           )
 
           write_json(
@@ -703,7 +953,7 @@ jobs:
           )
 
           # ============================================================
-          # ARCHIVE DAILY
+          # ARCHIVIO DAILY
           # ============================================================
 
           archive_daily = read_json(
@@ -717,45 +967,18 @@ jobs:
           ):
               archive_daily = []
 
-          normalized_archive_temp = (
-              avg_temp
-          )
-
-          normalized_archive_humidity = (
-              avg_humidity
-          )
-
-          if (
-              archive_date
-              >= NORMALIZATION_START_DATE
-          ):
-
-              (
-                  normalized_archive_temp,
-                  normalized_archive_humidity
-              ) = normalize_temperature(
-                  avg_temp,
-                  avg_humidity
-              )
-
-              normalized_archive_temp = round(
-                  normalized_archive_temp,
-                  2
-              )
-
-              normalized_archive_humidity = round(
-                  normalized_archive_humidity,
-                  1
-              )
-
           day = next(
               (
                   row
                   for row in archive_daily
                   if (
-                      isinstance(row, dict)
-                      and row.get("date")
-                      == archive_date
+                      isinstance(
+                          row,
+                          dict
+                      )
+                      and row.get(
+                          "date"
+                      ) == archive_date
                   )
               ),
               None
@@ -783,7 +1006,9 @@ jobs:
                       "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
               }
 
-              archive_daily.append(day)
+              archive_daily.append(
+                  day
+              )
 
           else:
 
@@ -828,10 +1053,11 @@ jobs:
               )
 
           archive_daily.sort(
-              key=lambda x: x.get(
-                  "date",
-                  ""
-              )
+              key=lambda x:
+                  x.get(
+                      "date",
+                      ""
+                  )
           )
 
           write_json(
@@ -843,7 +1069,8 @@ jobs:
               "ARCHIVIO - slot "
               f"{block_start.strftime('%H:%M')}-"
               f"{block_end.strftime('%H:%M')} => "
-              f"{avg_temp:.2f} °C "
+              f"{normalized_archive_temp:.2f} °C / "
+              f"{normalized_archive_humidity:.1f}% "
               f"({len(samples)} campioni)"
           )
 
