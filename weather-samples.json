@@ -18,5 +18,10 @@
     "time": "2026-09-19T13:01:00Z",
     "temperature": 26.9,
     "humidity": 55.0
+  },
+  {
+    "time": "2026-09-19T13:10:00Z",
+    "temperature": 27.5,
+    "humidity": 51.0
   }
 ]
