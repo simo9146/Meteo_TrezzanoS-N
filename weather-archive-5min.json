@@ -14,5 +14,13 @@
     "temperature": 26.5,
     "humidity": 55.0,
     "method": "switchbot_single_5min"
+  },
+  {
+    "time": "2026-09-19T12:50:24.617310Z",
+    "date": "2026-09-19",
+    "localTime": "14:50",
+    "temperature": 25.9,
+    "humidity": 54.0,
+    "method": "switchbot_single_5min"
   }
 ]
