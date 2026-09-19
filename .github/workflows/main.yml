@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/15 * * * *"
 
 concurrency:
   # Stesso gruppo utilizzato dal workflow MET Norway.
   # I due workflow non possono scrivere contemporaneamente sul main.
-  # Le esecuzioni successive vengono messe in coda anziché essere cancellate.
   group: meteo-trezzano-main-writer
-  queue: max
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -569,11 +568,11 @@ jobs:
           )
 
           # ============================================================
-          # ARCHIVIO: 5 CAMPIONI OGNI 2 MINUTI
+          # ARCHIVIO: 5 CAMPIONI OGNI 3 MINUTI
           # ============================================================
 
           for i in range(4):
-              time.sleep(120)
+              time.sleep(180)
 
               reading = switchbot_status()
 
@@ -588,7 +587,7 @@ jobs:
               )
 
           # ============================================================
-          # MEDIA DELLO SLOT DA 10 MINUTI
+          # MEDIA DELLO SLOT DA 15 MINUTI
           # ============================================================
 
           avg_temp = round(
@@ -614,15 +613,15 @@ jobs:
 
           block_start = first_local.replace(
               minute=(
-                  first_local.minute // 10
-              ) * 10,
+                  first_local.minute // 15
+              ) * 15,
               second=0,
               microsecond=0
           )
 
           block_end = (
               block_start
-              + timedelta(minutes=10)
+              + timedelta(minutes=15)
           )
 
           archive_date = (
@@ -649,7 +648,7 @@ jobs:
               "temperature": avg_temp,
               "humidity": avg_humidity,
               "samples": len(samples),
-              "method": "mean_5_samples_2min"
+              "method": "mean_5_samples_3min"
           }
 
           tenmin = read_json(
@@ -687,7 +686,7 @@ jobs:
 
           # ============================================================
           # ARCHIVIO GIORNALIERO
-          # MIN/MAX SUGLI SLOT DA 10 MINUTI NORMALIZZATI
+          # MIN/MAX SUGLI SLOT DA 15 MINUTI NORMALIZZATI
           # ============================================================
 
           today = datetime.now(
@@ -753,7 +752,7 @@ jobs:
                       "max": normalized_temp,
                       "maxTime": local_time,
                       "method": (
-                          "min_10min_max_10min_"
+                          "min_15min_max_15min_"
                           "normalized_UR_plus_3"
                       )
                   }
