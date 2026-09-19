@@ -5,7 +5,7 @@
     "minTime": "07:10",
     "max": 31.38,
     "maxTime": "17:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-02",
@@ -13,7 +13,7 @@
     "minTime": "00:00",
     "max": 31.87,
     "maxTime": "16:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-03",
@@ -21,7 +21,7 @@
     "minTime": "07:00",
     "max": 31.63,
     "maxTime": "17:00",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-04",
@@ -29,7 +29,7 @@
     "minTime": "07:30",
     "max": 34.01,
     "maxTime": "17:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-05",
@@ -37,7 +37,7 @@
     "minTime": "07:20",
     "max": 33.33,
     "maxTime": "16:50",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-06",
@@ -45,7 +45,7 @@
     "minTime": "01:40",
     "max": 33.63,
     "maxTime": "17:50",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-07",
@@ -53,7 +53,7 @@
     "minTime": "06:20",
     "max": 33.12,
     "maxTime": "17:10",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-08",
@@ -61,7 +61,7 @@
     "minTime": "07:30",
     "max": 33.08,
     "maxTime": "15:50",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-09",
@@ -69,7 +69,7 @@
     "minTime": "13:50",
     "max": 25.38,
     "maxTime": "16:30",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-10",
@@ -77,7 +77,7 @@
     "minTime": "05:50",
     "max": 24.37,
     "maxTime": "18:00",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-11",
@@ -85,7 +85,7 @@
     "minTime": "07:00",
     "max": 27.64,
     "maxTime": "16:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-12",
@@ -93,7 +93,7 @@
     "minTime": "05:40",
     "max": 27.18,
     "maxTime": "18:00",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-13",
@@ -101,7 +101,7 @@
     "minTime": "01:40",
     "max": 28.5,
     "maxTime": "16:10",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-14",
@@ -109,7 +109,7 @@
     "minTime": "07:10",
     "max": 30.33,
     "maxTime": "17:00",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-15",
@@ -117,7 +117,7 @@
     "minTime": "23:30",
     "max": 28.28,
     "maxTime": "16:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-16",
@@ -125,7 +125,7 @@
     "minTime": "02:20",
     "max": 28.99,
     "maxTime": "15:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-17",
@@ -133,7 +133,7 @@
     "minTime": "09:00",
     "max": 23.3,
     "maxTime": "16:40",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   },
   {
     "date": "2026-09-18",
@@ -141,6 +141,6 @@
     "minTime": "06:40",
     "max": 26.23,
     "maxTime": "16:20",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "min_15min_max_15min_normalized_UR_plus_3"
   }
 ]
