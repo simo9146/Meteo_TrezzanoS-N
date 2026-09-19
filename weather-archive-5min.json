@@ -1,0 +1,10 @@
+[
+  {
+    "time": "2026-09-19T12:30:38.431529Z",
+    "date": "2026-09-19",
+    "localTime": "14:30",
+    "temperature": 26.8,
+    "humidity": 55.0,
+    "method": "switchbot_single_5min"
+  }
+]
