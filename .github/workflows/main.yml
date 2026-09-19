@@ -59,6 +59,18 @@ jobs:
           ARCHIVE_START_DATE = "2026-09-01"
           UR_CORRECTION = 3.0
 
+          # ============================================================
+          # CONFIGURAZIONE ARCHIVIO
+          # ============================================================
+
+          SLOT_MINUTES = 15
+          SAMPLE_COUNT = 5
+          SAMPLE_INTERVAL_SECONDS = 180
+
+          # ============================================================
+          # FUNZIONI GENERALI
+          # ============================================================
+
           def read_json(path, default):
               p = Path(path)
 
@@ -187,6 +199,49 @@ jobs:
 
               return T2, UR2
 
+          # ============================================================
+          # CALCOLO SLOT 15 MINUTI
+          # ============================================================
+
+          def get_archive_slot(first_sample_time):
+              """
+              Assegna il gruppo di 5 campioni al QUARTO D'ORA
+              successivo rispetto all'inizio del blocco.
+
+              Esempi:
+
+              10:00 -> slot 10:15
+              10:01 -> slot 10:15
+              10:07 -> slot 10:15
+              10:14 -> slot 10:15
+
+              10:15 -> slot 10:30
+              10:16 -> slot 10:30
+              """
+
+              local_time = first_sample_time.astimezone(ROME)
+
+              minute_block = (
+                  local_time.minute // SLOT_MINUTES
+              ) * SLOT_MINUTES
+
+              block_start = local_time.replace(
+                  minute=minute_block,
+                  second=0,
+                  microsecond=0
+              )
+
+              block_end = (
+                  block_start
+                  + timedelta(minutes=SLOT_MINUTES)
+              )
+
+              return block_start, block_end
+
+          # ============================================================
+          # COMMIT E PUSH
+          # ============================================================
+
           def commit_and_push(
               files,
               message
@@ -203,8 +258,6 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
-              # Salviamo temporaneamente i file prodotti
-              # da questo run.
               backup_dir = Path(
                   "/tmp/meteo-generated"
               )
@@ -229,31 +282,28 @@ jobs:
                       )
 
               for attempt in range(1, 4):
+
                   try:
+
                       print(
                           f"Sincronizzazione main - "
                           f"tentativo {attempt}/3"
                       )
 
-                      # Recuperiamo l'ultima versione
-                      # del main remoto.
                       run_git(
                           "fetch",
                           "origin",
                           "main"
                       )
 
-                      # Ci portiamo esattamente sull'ultimo
-                      # main remoto.
                       run_git(
                           "reset",
                           "--hard",
                           "origin/main"
                       )
 
-                      # Ripristiniamo i file prodotti
-                      # da questo run.
                       for file in files:
+
                           backup = (
                               backup_dir
                               / Path(file).name
@@ -284,10 +334,12 @@ jobs:
                       )
 
                       if not changed:
+
                           print(
                               "Nessuna modifica da salvare:",
                               message
                           )
+
                           return
 
                       run_git(
@@ -310,6 +362,7 @@ jobs:
                       return
 
                   except subprocess.CalledProcessError:
+
                       print(
                           f"Push fallito al tentativo "
                           f"{attempt}/3."
@@ -373,13 +426,16 @@ jobs:
           raw_humidity = first["humidity"]
 
           if home_date >= NORMALIZATION_START_DATE:
+
               home_temp, home_humidity = (
                   normalize_temperature(
                       raw_temp,
                       raw_humidity
                   )
               )
+
           else:
+
               home_temp = raw_temp
               home_humidity = raw_humidity
 
@@ -400,6 +456,7 @@ jobs:
           }
 
           if first["battery"] is not None:
+
               current_data["battery"] = (
                   first["battery"]
               )
@@ -445,6 +502,7 @@ jobs:
           clean_history = []
 
           for row in history:
+
               if not isinstance(row, dict):
                   continue
 
@@ -496,6 +554,7 @@ jobs:
           )
 
           if today_row is None:
+
               today_row = {
                   "date": home_date,
                   "min": round(
@@ -513,12 +572,14 @@ jobs:
               daily.append(today_row)
 
           else:
+
               if home_temp < float(
                   today_row.get(
                       "min",
                       home_temp
                   )
               ):
+
                   today_row["min"] = round(
                       home_temp,
                       2
@@ -534,6 +595,7 @@ jobs:
                       home_temp
                   )
               ):
+
                   today_row["max"] = round(
                       home_temp,
                       2
@@ -568,26 +630,43 @@ jobs:
           )
 
           # ============================================================
-          # ARCHIVIO: 5 CAMPIONI OGNI 3 MINUTI
+          # ARCHIVIO
+          #
+          # 5 CAMPIONI:
+          #
+          # 1° immediato
+          # 2° dopo 3 minuti
+          # 3° dopo 6 minuti
+          # 4° dopo 9 minuti
+          # 5° dopo 12 minuti
+          #
+          # Totale: circa 12 minuti.
           # ============================================================
 
-          for i in range(4):
-              time.sleep(180)
+          for i in range(
+              SAMPLE_COUNT - 1
+          ):
+
+              time.sleep(
+                  SAMPLE_INTERVAL_SECONDS
+              )
 
               reading = switchbot_status()
 
-              samples.append(reading)
+              samples.append(
+                  reading
+              )
 
               print(
                   f"ARCHIVIO - campione "
-                  f"{i + 2}/5: "
+                  f"{i + 2}/{SAMPLE_COUNT}: "
                   f"{reading['temperature']:.2f} °C - "
                   f"{reading['humidity']:.1f}% - "
                   f"{reading['capturedAt'].isoformat()}"
               )
 
           # ============================================================
-          # MEDIA DELLO SLOT DA 15 MINUTI
+          # MEDIA DELLO SLOT
           # ============================================================
 
           avg_temp = round(
@@ -606,22 +685,14 @@ jobs:
               1
           )
 
-          first_local = (
-              samples[0]["capturedAt"]
-              .astimezone(ROME)
-          )
+          # ============================================================
+          # SLOT RIGOROSAMENTE DA 15 MINUTI
+          # ============================================================
 
-          block_start = first_local.replace(
-              minute=(
-                  first_local.minute // 15
-              ) * 15,
-              second=0,
-              microsecond=0
-          )
-
-          block_end = (
-              block_start
-              + timedelta(minutes=15)
+          block_start, block_end = (
+              get_archive_slot(
+                  samples[0]["capturedAt"]
+              )
           )
 
           archive_date = (
@@ -629,6 +700,16 @@ jobs:
                   "%Y-%m-%d"
               )
           )
+
+          # IMPORTANTE:
+          # localTime è sempre un quarto d'ora esatto:
+          #
+          # 09:15
+          # 09:30
+          # 09:45
+          # 10:00
+          # 10:15
+          # ecc.
 
           archive_time = (
               block_end.strftime(
@@ -651,6 +732,10 @@ jobs:
               "method": "mean_5_samples_3min"
           }
 
+          # ============================================================
+          # ARCHIVIO 15 MINUTI
+          # ============================================================
+
           tenmin = read_json(
               "weather-archive-10min.json",
               []
@@ -659,7 +744,8 @@ jobs:
           if not isinstance(tenmin, list):
               tenmin = []
 
-          # Evita duplicare lo stesso slot.
+          # Elimina eventuale duplicato dello stesso slot.
+
           tenmin = [
               row
               for row in tenmin
@@ -670,7 +756,9 @@ jobs:
               )
           ]
 
-          tenmin.append(slot)
+          tenmin.append(
+              slot
+          )
 
           tenmin.sort(
               key=lambda x: x.get(
@@ -686,7 +774,9 @@ jobs:
 
           # ============================================================
           # ARCHIVIO GIORNALIERO
-          # MIN/MAX SUGLI SLOT DA 15 MINUTI NORMALIZZATI
+          #
+          # MIN/MAX SUGLI SLOT DA 15 MINUTI
+          # NORMALIZZATI
           # ============================================================
 
           today = datetime.now(
@@ -700,7 +790,9 @@ jobs:
               if not isinstance(row, dict):
                   continue
 
-              date = row.get("date")
+              date = row.get(
+                  "date"
+              )
 
               if (
                   not date
@@ -710,6 +802,7 @@ jobs:
                   continue
 
               try:
+
                   raw_temperature = float(
                       row["temperature"]
                   )
@@ -719,6 +812,7 @@ jobs:
                   )
 
               except Exception:
+
                   continue
 
               normalized_temp, corrected_humidity = (
@@ -764,6 +858,7 @@ jobs:
                   if normalized_temp < float(
                       day["min"]
                   ):
+
                       day["min"] = (
                           normalized_temp
                       )
@@ -775,6 +870,7 @@ jobs:
                   if normalized_temp > float(
                       day["max"]
                   ):
+
                       day["max"] = (
                           normalized_temp
                       )
@@ -793,12 +889,21 @@ jobs:
               archive_daily_list
           )
 
+          # ============================================================
+          # LOG FINALE
+          # ============================================================
+
           print(
               f"ARCHIVIO - slot "
               f"{block_start.strftime('%H:%M')}-"
               f"{block_end.strftime('%H:%M')} "
               f"=> {avg_temp:.2f} °C "
               f"({len(samples)} campioni)"
+          )
+
+          print(
+              f"ARCHIVIO - localTime salvato: "
+              f"{archive_time}"
           )
 
           # ============================================================
