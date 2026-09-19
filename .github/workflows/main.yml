@@ -9,8 +9,9 @@ on:
 concurrency:
   # Stesso gruppo utilizzato dal workflow MET Norway.
   # I due workflow non possono scrivere contemporaneamente sul main.
+  # Le esecuzioni successive vengono messe in coda anziché essere cancellate.
   group: meteo-trezzano-main-writer
-  cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: write
@@ -203,6 +204,8 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
+              # Salviamo temporaneamente i file prodotti
+              # da questo run.
               backup_dir = Path(
                   "/tmp/meteo-generated"
               )
@@ -233,18 +236,24 @@ jobs:
                           f"tentativo {attempt}/3"
                       )
 
+                      # Recuperiamo l'ultima versione
+                      # del main remoto.
                       run_git(
                           "fetch",
                           "origin",
                           "main"
                       )
 
+                      # Ci portiamo esattamente sull'ultimo
+                      # main remoto.
                       run_git(
                           "reset",
                           "--hard",
                           "origin/main"
                       )
 
+                      # Ripristiniamo i file prodotti
+                      # da questo run.
                       for file in files:
                           backup = (
                               backup_dir
@@ -651,6 +660,7 @@ jobs:
           if not isinstance(tenmin, list):
               tenmin = []
 
+          # Evita duplicare lo stesso slot.
           tenmin = [
               row
               for row in tenmin
