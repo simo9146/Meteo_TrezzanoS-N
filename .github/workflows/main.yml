@@ -59,23 +59,20 @@ jobs:
           )
 
           # ============================================================
-          # CONFIGURAZIONE NORMALIZZAZIONE
+          # CONFIGURAZIONE
           # ============================================================
 
           NORMALIZATION_START_DATE = "2026-09-11"
 
-          # +3 punti percentuali di umidità relativa
+          # Correzione UR: +3 punti percentuali
           UR_CORRECTION = 3.0
 
-          # ============================================================
-          # CORREZIONE UNA TANTUM DEL DATO ERRATO 7,2 °C
-          # ============================================================
-
+          # Correzione una tantum del dato errato di 7,2 °C
           REPAIR_DATE = "2026-09-19"
           REPAIR_BAD_TEMPERATURE = 7.2
 
           # ============================================================
-          # FUNZIONI FILE
+          # FUNZIONI JSON / GIT
           # ============================================================
 
           def read_json(path, default):
@@ -86,9 +83,7 @@ jobs:
 
               try:
                   return json.loads(
-                      p.read_text(
-                          encoding="utf-8"
-                      )
+                      p.read_text(encoding="utf-8")
                   )
               except Exception:
                   return default
@@ -106,10 +101,7 @@ jobs:
           def parse_iso(value):
               try:
                   return datetime.fromisoformat(
-                      str(value).replace(
-                          "Z",
-                          "+00:00"
-                      )
+                      str(value).replace("Z", "+00:00")
                   )
               except Exception:
                   return None
@@ -134,10 +126,7 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
-              run_git(
-                  "add",
-                  *files
-              )
+              run_git("add", *files)
 
               changed = (
                   subprocess.run(
@@ -179,39 +168,29 @@ jobs:
           # ============================================================
           # NORMALIZZAZIONE TERMOIGROMETRICA
           #
-          # 1. Prende temperatura e UR originali SwitchBot.
-          # 2. Aumenta UR di 3 punti percentuali.
-          # 3. Calcola il punto di rugiada originale.
-          # 4. Mantiene lo stesso punto di rugiada.
-          # 5. Ricalcola la temperatura coerente con la nuova UR.
+          # Esempio:
           #
-          # La temperatura quindi VIENE modificata dalla normalizzazione.
+          # 28.7 °C / 52% UR
+          #
+          # diventa:
+          #
+          # 27.7 °C / 55% UR
+          #
+          # mantenendo invariato il punto di rugiada.
           # ============================================================
 
-          def normalize_temperature(
-              temperature,
-              humidity
-          ):
+          def normalize_temperature(temperature, humidity):
 
               if humidity is None:
-                  return (
-                      temperature,
-                      humidity
-                  )
+                  return temperature, humidity
 
-              # UR corretta +3 punti percentuali
               corrected_humidity = min(
                   humidity + UR_CORRECTION,
                   100.0
               )
 
-              # Se non è possibile calcolare la correzione,
-              # manteniamo la temperatura originale.
               if humidity <= 0:
-                  return (
-                      temperature,
-                      corrected_humidity
-                  )
+                  return temperature, corrected_humidity
 
               try:
 
@@ -219,14 +198,12 @@ jobs:
                   a = 17.62
                   b = 243.12
 
-                  # ==================================================
-                  # Punto di rugiada con i dati originali
-                  # ==================================================
+                  # ----------------------------------------------------
+                  # 1. Punto di rugiada originale
+                  # ----------------------------------------------------
 
                   gamma = (
-                      math.log(
-                          humidity / 100.0
-                      )
+                      math.log(humidity / 100.0)
                       + (
                           a * temperature
                           / (b + temperature)
@@ -238,24 +215,25 @@ jobs:
                       / (a - gamma)
                   )
 
-                  # ==================================================
-                  # Nuova temperatura con UR +3
-                  # mantenendo invariato il punto di rugiada
-                  # ==================================================
+                  # ----------------------------------------------------
+                  # 2. Nuova temperatura con UR +3
+                  #
+                  # Manteniamo invariato il punto di rugiada.
+                  # ----------------------------------------------------
 
-                  gamma2 = (
-                      math.log(
-                          corrected_humidity / 100.0
-                      )
-                      + (
+                  gamma_new = (
+                      (
                           a * dew_point
                           / (b + dew_point)
+                      )
+                      - math.log(
+                          corrected_humidity / 100.0
                       )
                   )
 
                   corrected_temperature = (
-                      b * gamma2
-                      / (a - gamma2)
+                      b * gamma_new
+                      / (a - gamma_new)
                   )
 
                   return (
@@ -266,7 +244,7 @@ jobs:
               except Exception as error:
 
                   print(
-                      "Errore nella normalizzazione:",
+                      "Errore normalizzazione:",
                       error
                   )
 
@@ -276,56 +254,34 @@ jobs:
                   )
 
           # ============================================================
-          # SWITCHBOT API
+          # SWITCHBOT
           # ============================================================
 
           def switchbot_status():
 
-              nonce = str(
-                  uuid.uuid4()
-              )
+              nonce = str(uuid.uuid4())
 
               t = str(
-                  int(
-                      time.time() * 1000
-                  )
+                  int(time.time() * 1000)
               )
 
-              message = (
-                  TOKEN
-                  + t
-                  + nonce
-              )
+              message = TOKEN + t + nonce
 
               sign = base64.b64encode(
                   hmac.new(
-                      SECRET.encode(
-                          "utf-8"
-                      ),
-                      message.encode(
-                          "utf-8"
-                      ),
+                      SECRET.encode("utf-8"),
+                      message.encode("utf-8"),
                       hashlib.sha256
                   ).digest()
-              ).decode(
-                  "utf-8"
-              )
+              ).decode("utf-8")
 
               req = urllib.request.Request(
                   API_URL,
                   headers={
-                      "Authorization":
-                          TOKEN,
-
-                      "sign":
-                          sign,
-
-                      "nonce":
-                          nonce,
-
-                      "t":
-                          t,
-
+                      "Authorization": TOKEN,
+                      "sign": sign,
+                      "nonce": nonce,
+                      "t": t,
                       "Content-Type":
                           "application/json; charset=utf8"
                   }
@@ -336,42 +292,28 @@ jobs:
                   timeout=30
               ) as response:
 
-                  payload = json.load(
-                      response
-                  )
+                  payload = json.load(response)
 
-              if payload.get(
-                  "statusCode"
-              ) != 100:
-
+              if payload.get("statusCode") != 100:
                   raise RuntimeError(
                       "SwitchBot API error: "
                       f"{payload.get('message')}"
                   )
 
-              body = (
-                  payload.get("body")
-                  or {}
-              )
+              body = payload.get("body") or {}
 
               return {
                   "temperature":
-                      float(
-                          body["temperature"]
-                      ),
+                      float(body["temperature"]),
 
                   "humidity":
-                      float(
-                          body["humidity"]
-                      ),
+                      float(body["humidity"]),
 
                   "battery":
                       body.get("battery"),
 
                   "capturedAt":
-                      datetime.now(
-                          timezone.utc
-                      )
+                      datetime.now(timezone.utc)
               }
 
           # ============================================================
@@ -381,44 +323,24 @@ jobs:
           samples = []
 
           first = switchbot_status()
-
-          samples.append(
-              first
-          )
+          samples.append(first)
 
           first_local = (
               first["capturedAt"]
               .astimezone(ROME)
           )
 
-          first_date = (
-              first_local.strftime(
-                  "%Y-%m-%d"
-              )
-          )
+          first_date = first_local.strftime("%Y-%m-%d")
+          first_time = first_local.strftime("%H:%M")
 
-          first_time = (
-              first_local.strftime(
-                  "%H:%M"
-              )
-          )
-
-          raw_temp = (
-              first["temperature"]
-          )
-
-          raw_humidity = (
-              first["humidity"]
-          )
+          raw_temp = first["temperature"]
+          raw_humidity = first["humidity"]
 
           # ============================================================
           # NORMALIZZAZIONE HOME
           # ============================================================
 
-          if (
-              first_date
-              >= NORMALIZATION_START_DATE
-          ):
+          if first_date >= NORMALIZATION_START_DATE:
 
               home_temp, home_humidity = (
                   normalize_temperature(
@@ -432,53 +354,38 @@ jobs:
               home_temp = raw_temp
               home_humidity = raw_humidity
 
-          home_temp = round(
-              home_temp,
-              2
-          )
-
-          home_humidity = round(
-              home_humidity,
-              1
-          )
+          # Arrotondamento a 1 decimale
+          home_temp = round(home_temp, 1)
+          home_humidity = round(home_humidity, 1)
 
           print(
               "SWITCHBOT RAW - "
-              f"{raw_temp:.2f} °C / "
+              f"{raw_temp:.1f} °C / "
               f"{raw_humidity:.1f}%"
           )
 
           print(
               "HOME NORMALIZZATA - "
-              f"{home_temp:.2f} °C / "
+              f"{home_temp:.1f} °C / "
               f"{home_humidity:.1f}% - "
               f"{first['capturedAt'].isoformat()}"
           )
 
           # ============================================================
-          # WEATHER DATA HOME
+          # WEATHER DATA
           # ============================================================
 
           current_data = {
-              "temperature":
-                  home_temp,
-
-              "humidity":
-                  home_humidity,
-
+              "temperature": home_temp,
+              "humidity": home_humidity,
               "updatedAt":
                   first["capturedAt"]
                   .isoformat()
-                  .replace(
-                      "+00:00",
-                      "Z"
-                  )
+                  .replace("+00:00", "Z")
           }
 
           if first["battery"] is not None:
-              current_data["battery"] = (
-                  first["battery"]
-              )
+              current_data["battery"] = first["battery"]
 
           write_json(
               "weather-data.json",
@@ -494,43 +401,28 @@ jobs:
               []
           )
 
-          if not isinstance(
-              history,
-              list
-          ):
+          if not isinstance(history, list):
               history = []
 
           history.append({
               "time":
                   first["capturedAt"]
                   .isoformat()
-                  .replace(
-                      "+00:00",
-                      "Z"
-                  ),
+                  .replace("+00:00", "Z"),
 
-              "temperature":
-                  home_temp,
-
-              "humidity":
-                  home_humidity
+              "temperature": home_temp,
+              "humidity": home_humidity
           })
 
           # ============================================================
           # RIMOZIONE DEL VECCHIO 7,2 °C
-          #
-          # Rimuove esclusivamente il valore 7.2 °C
-          # dalla giornata del 19/09/2026.
           # ============================================================
 
           repaired_history = []
 
           for row in history:
 
-              if not isinstance(
-                  row,
-                  dict
-              ):
+              if not isinstance(row, dict):
                   continue
 
               row_time = parse_iso(
@@ -559,29 +451,22 @@ jobs:
 
                   print(
                       "RIPARAZIONE: rimosso "
-                      "vecchio dato anomalo "
-                      f"{row_temp} °C"
+                      f"vecchio dato {row_temp} °C"
                   )
 
                   continue
 
-              repaired_history.append(
-                  row
-              )
+              repaired_history.append(row)
 
           history = repaired_history
 
           # ============================================================
-          # MANTIENI SOLO ULTIMI 7 GIORNI
+          # ULTIMI 7 GIORNI
           # ============================================================
 
           cutoff = (
-              datetime.now(
-                  timezone.utc
-              )
-              - timedelta(
-                  days=7
-              )
+              datetime.now(timezone.utc)
+              - timedelta(days=7)
           )
 
           clean_history = []
@@ -596,17 +481,10 @@ jobs:
                   dt is not None
                   and dt >= cutoff
               ):
-
-                  clean_history.append(
-                      row
-                  )
+                  clean_history.append(row)
 
           clean_history.sort(
-              key=lambda x:
-                  x.get(
-                      "time",
-                      ""
-                  )
+              key=lambda x: x.get("time", "")
           )
 
           write_json(
@@ -623,14 +501,8 @@ jobs:
               []
           )
 
-          if not isinstance(
-              daily,
-              list
-          ):
+          if not isinstance(daily, list):
               daily = []
-
-          # Ricalcolo completo del giorno corrente
-          # dalla history già ripulita.
 
           today_rows = []
 
@@ -643,14 +515,10 @@ jobs:
               if dt is None:
                   continue
 
-              local_dt = dt.astimezone(
-                  ROME
-              )
+              local_dt = dt.astimezone(ROME)
 
               if (
-                  local_dt.strftime(
-                      "%Y-%m-%d"
-                  )
+                  local_dt.strftime("%Y-%m-%d")
                   == first_date
               ):
 
@@ -662,7 +530,6 @@ jobs:
                       temp,
                       (int, float)
                   ):
-
                       today_rows.append(
                           (
                               float(temp),
@@ -683,56 +550,29 @@ jobs:
               )
 
               new_today = {
-                  "date":
-                      first_date,
-
-                  "min":
-                      round(
-                          min_temp,
-                          2
-                      ),
-
+                  "date": first_date,
+                  "min": round(min_temp, 1),
                   "minTime":
-                      min_dt.strftime(
-                          "%H:%M"
-                      ),
-
-                  "max":
-                      round(
-                          max_temp,
-                          2
-                      ),
-
+                      min_dt.strftime("%H:%M"),
+                  "max": round(max_temp, 1),
                   "maxTime":
-                      max_dt.strftime(
-                          "%H:%M"
-                      )
+                      max_dt.strftime("%H:%M")
               }
 
               daily = [
                   row
                   for row in daily
                   if not (
-                      isinstance(
-                          row,
-                          dict
-                      )
-                      and row.get(
-                          "date"
-                      ) == first_date
+                      isinstance(row, dict)
+                      and row.get("date")
+                      == first_date
                   )
               ]
 
-              daily.append(
-                  new_today
-              )
+              daily.append(new_today)
 
           daily.sort(
-              key=lambda x:
-                  x.get(
-                      "date",
-                      ""
-                  )
+              key=lambda x: x.get("date", "")
           )
 
           write_json(
@@ -763,20 +603,17 @@ jobs:
 
               reading = switchbot_status()
 
-              samples.append(
-                  reading
-              )
+              samples.append(reading)
 
               print(
-                  f"ARCHIVIO - campione "
-                  f"{i + 2}/5: "
+                  f"ARCHIVIO - campione {i + 2}/5: "
                   f"{reading['temperature']:.1f} °C - "
-                  f"{reading['humidity']:.0f}% - "
+                  f"{reading['humidity']:.1f}% - "
                   f"{reading['capturedAt'].isoformat()}"
               )
 
           # ============================================================
-          # MEDIA DEI 5 CAMPIONI
+          # MEDIA DEI 5 CAMPIONI RAW
           # ============================================================
 
           avg_temp = round(
@@ -784,7 +621,7 @@ jobs:
                   x["temperature"]
                   for x in samples
               ) / len(samples),
-              2
+              1
           )
 
           avg_humidity = round(
@@ -810,31 +647,22 @@ jobs:
 
           block_end = (
               block_start
-              + timedelta(
-                  minutes=10
-              )
+              + timedelta(minutes=10)
           )
 
-          archive_date = (
-              block_start.strftime(
-                  "%Y-%m-%d"
-              )
+          archive_date = block_start.strftime(
+              "%Y-%m-%d"
           )
 
-          archive_time = (
-              block_end.strftime(
-                  "%H:%M"
-              )
+          archive_time = block_end.strftime(
+              "%H:%M"
           )
 
           # ============================================================
-          # NORMALIZZAZIONE DELLA MEDIA
+          # NORMALIZZAZIONE MEDIA
           # ============================================================
 
-          if (
-              archive_date
-              >= NORMALIZATION_START_DATE
-          ):
+          if archive_date >= NORMALIZATION_START_DATE:
 
               normalized_archive_temp, normalized_archive_humidity = (
                   normalize_temperature(
@@ -845,17 +673,12 @@ jobs:
 
           else:
 
-              normalized_archive_temp = (
-                  avg_temp
-              )
-
-              normalized_archive_humidity = (
-                  avg_humidity
-              )
+              normalized_archive_temp = avg_temp
+              normalized_archive_humidity = avg_humidity
 
           normalized_archive_temp = round(
               normalized_archive_temp,
-              2
+              1
           )
 
           normalized_archive_humidity = round(
@@ -865,13 +688,13 @@ jobs:
 
           print(
               "ARCHIVIO RAW - "
-              f"{avg_temp:.2f} °C / "
+              f"{avg_temp:.1f} °C / "
               f"{avg_humidity:.1f}%"
           )
 
           print(
               "ARCHIVIO NORMALIZZATO - "
-              f"{normalized_archive_temp:.2f} °C / "
+              f"{normalized_archive_temp:.1f} °C / "
               f"{normalized_archive_humidity:.1f}%"
           )
 
@@ -882,20 +705,13 @@ jobs:
           slot = {
               "time":
                   block_end
-                  .astimezone(
-                      timezone.utc
-                  )
+                  .astimezone(timezone.utc)
                   .isoformat()
-                  .replace(
-                      "+00:00",
-                      "Z"
-                  ),
+                  .replace("+00:00", "Z"),
 
-              "date":
-                  archive_date,
+              "date": archive_date,
 
-              "localTime":
-                  archive_time,
+              "localTime": archive_time,
 
               "temperature":
                   normalized_archive_temp,
@@ -915,36 +731,23 @@ jobs:
               []
           )
 
-          if not isinstance(
-              tenmin,
-              list
-          ):
+          if not isinstance(tenmin, list):
               tenmin = []
 
           tenmin = [
               row
               for row in tenmin
               if not (
-                  isinstance(
-                      row,
-                      dict
-                  )
-                  and row.get(
-                      "time"
-                  ) == slot["time"]
+                  isinstance(row, dict)
+                  and row.get("time")
+                  == slot["time"]
               )
           ]
 
-          tenmin.append(
-              slot
-          )
+          tenmin.append(slot)
 
           tenmin.sort(
-              key=lambda x:
-                  x.get(
-                      "time",
-                      ""
-                  )
+              key=lambda x: x.get("time", "")
           )
 
           write_json(
@@ -972,13 +775,9 @@ jobs:
                   row
                   for row in archive_daily
                   if (
-                      isinstance(
-                          row,
-                          dict
-                      )
-                      and row.get(
-                          "date"
-                      ) == archive_date
+                      isinstance(row, dict)
+                      and row.get("date")
+                      == archive_date
                   )
               ),
               None
@@ -987,8 +786,7 @@ jobs:
           if day is None:
 
               day = {
-                  "date":
-                      archive_date,
+                  "date": archive_date,
 
                   "min":
                       normalized_archive_temp,
@@ -1006,9 +804,7 @@ jobs:
                       "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
               }
 
-              archive_daily.append(
-                  day
-              )
+              archive_daily.append(day)
 
           else:
 
@@ -1053,11 +849,7 @@ jobs:
               )
 
           archive_daily.sort(
-              key=lambda x:
-                  x.get(
-                      "date",
-                      ""
-                  )
+              key=lambda x: x.get("date", "")
           )
 
           write_json(
@@ -1069,7 +861,7 @@ jobs:
               "ARCHIVIO - slot "
               f"{block_start.strftime('%H:%M')}-"
               f"{block_end.strftime('%H:%M')} => "
-              f"{normalized_archive_temp:.2f} °C / "
+              f"{normalized_archive_temp:.1f} °C / "
               f"{normalized_archive_humidity:.1f}% "
               f"({len(samples)} campioni)"
           )
