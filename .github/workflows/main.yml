@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/10 * * * *"
 
 concurrency:
   # Stesso gruppo utilizzato dal workflow MET Norway.
@@ -203,8 +203,6 @@ jobs:
                   "41898282+github-actions[bot]@users.noreply.github.com"
               )
 
-              # Salviamo temporaneamente i file prodotti
-              # da questo run.
               backup_dir = Path(
                   "/tmp/meteo-generated"
               )
@@ -235,24 +233,18 @@ jobs:
                           f"tentativo {attempt}/3"
                       )
 
-                      # Recuperiamo l'ultima versione
-                      # del main remoto.
                       run_git(
                           "fetch",
                           "origin",
                           "main"
                       )
 
-                      # Ci portiamo esattamente sull'ultimo
-                      # main remoto.
                       run_git(
                           "reset",
                           "--hard",
                           "origin/main"
                       )
 
-                      # Ripristiniamo i file prodotti
-                      # da questo run.
                       for file in files:
                           backup = (
                               backup_dir
@@ -659,7 +651,6 @@ jobs:
           if not isinstance(tenmin, list):
               tenmin = []
 
-          # Evita duplicare lo stesso slot.
           tenmin = [
               row
               for row in tenmin
