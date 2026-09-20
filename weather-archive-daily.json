@@ -221,6 +221,6 @@
     "minTime": "06:50",
     "max": 18.0,
     "maxTime": "00:40",
-    "method": "min_10min_max_10min_normalized_UR_plus_3"
+    "method": "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
   }
 ]
