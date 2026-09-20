@@ -168,15 +168,8 @@ jobs:
           # ============================================================
           # NORMALIZZAZIONE TERMOIGROMETRICA
           #
-          # Esempio:
-          #
-          # 28.7 °C / 52% UR
-          #
-          # diventa:
-          #
-          # 27.7 °C / 55% UR
-          #
-          # mantenendo invariato il punto di rugiada.
+          # Manteniamo invariato il punto di rugiada e correggiamo
+          # l'umidità aggiungendo 3 punti percentuali.
           # ============================================================
 
           def normalize_temperature(temperature, humidity):
@@ -757,96 +750,105 @@ jobs:
 
           # ============================================================
           # ARCHIVIO DAILY
+          #
+          # Il daily viene ricostruito dall'intero archivio 10 minuti.
+          # In questo modo min/max sono sempre realmente il valore più
+          # basso e più alto registrato per ciascun giorno e un eventuale
+          # vecchio valore errato nel daily non può rimanere memorizzato.
           # ============================================================
 
-          archive_daily = read_json(
-              "weather-archive-daily.json",
-              []
-          )
+          archive_daily_map = {}
 
-          if not isinstance(
-              archive_daily,
-              list
-          ):
-              archive_daily = []
+          for row in tenmin:
 
-          day = next(
-              (
-                  row
-                  for row in archive_daily
+              if not isinstance(row, dict):
+                  continue
+
+              row_date = row.get("date")
+              row_temp = row.get("temperature")
+              row_time = row.get("localTime")
+
+              if (
+                  not row_date
+                  or not isinstance(row_temp, (int, float))
+                  or not row_time
+              ):
+                  continue
+
+              row_temp = float(row_temp)
+
+              current = archive_daily_map.get(row_date)
+
+              if current is None:
+
+                  archive_daily_map[row_date] = {
+                      "date": row_date,
+                      "min": row_temp,
+                      "minTime": row_time,
+                      "max": row_temp,
+                      "maxTime": row_time,
+                      "method":
+                          "min_10min_max_10min_normalized_UR_plus_3"
+                  }
+
+              else:
+
                   if (
-                      isinstance(row, dict)
-                      and row.get("date")
-                      == archive_date
-                  )
-              ),
-              None
+                      row_temp < current["min"]
+                      or (
+                          row_temp == current["min"]
+                          and row_time < current["minTime"]
+                      )
+                  ):
+
+                      current["min"] = row_temp
+                      current["minTime"] = row_time
+
+                  if (
+                      row_temp > current["max"]
+                      or (
+                          row_temp == current["max"]
+                          and row_time < current["maxTime"]
+                      )
+                  ):
+
+                      current["max"] = row_temp
+                      current["maxTime"] = row_time
+
+          archive_daily = list(
+              archive_daily_map.values()
           )
 
-          if day is None:
+          # ------------------------------------------------------------
+          # CORREZIONE UNA TANTUM DEL 19/09/2026
+          #
+          # Valori verificati:
+          # minima 16.2 °C alle 07:50
+          # massima 28.8 °C alle 16:10
+          #
+          # Dal 20/09 in poi il daily viene sempre calcolato
+          # automaticamente dall'intero weather-archive-10min.json.
+          # ------------------------------------------------------------
 
-              day = {
-                  "date": archive_date,
+          for row in archive_daily:
 
-                  "min":
-                      normalized_archive_temp,
+              if row.get("date") == REPAIR_DATE:
 
-                  "minTime":
-                      archive_time,
-
-                  "max":
-                      normalized_archive_temp,
-
-                  "maxTime":
-                      archive_time,
-
-                  "method":
-                      "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
-              }
-
-              archive_daily.append(day)
-
-          else:
-
-              if (
-                  normalized_archive_temp
-                  < float(
-                      day.get(
-                          "min",
-                          normalized_archive_temp
-                      )
-                  )
-              ):
-
-                  day["min"] = (
-                      normalized_archive_temp
+                  row["min"] = 16.2
+                  row["minTime"] = "07:50"
+                  row["max"] = 28.8
+                  row["maxTime"] = "16:10"
+                  row["method"] = (
+                      "min_10min_max_10min_normalized_UR_plus_3"
                   )
 
-                  day["minTime"] = (
-                      archive_time
+                  print(
+                      "RIPARAZIONE ARCHIVIO DAILY 19/09: "
+                      "16.2 °C alle 07:50 / "
+                      "28.8 °C alle 16:10"
                   )
 
-              if (
-                  normalized_archive_temp
-                  > float(
-                      day.get(
-                          "max",
-                          normalized_archive_temp
-                      )
-                  )
-              ):
-
-                  day["max"] = (
-                      normalized_archive_temp
-                  )
-
-                  day["maxTime"] = (
-                      archive_time
-                  )
-
-              day["method"] = (
-                  "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
-              )
+                  break
 
           archive_daily.sort(
               key=lambda x: x.get("date", "")
