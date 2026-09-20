@@ -646,20 +646,21 @@ jobs:
           # ============================================================
           # NORMALIZZAZIONE MEDIA
           #
-          # IMPORTANTE:
+          # Dal 21/09 in poi la media dei 5 campioni viene
+          # normalizzata prima di essere salvata nell'archivio.
           #
-          # Dal 20/09 gli slot sono già normalizzati.
-          # Qui NON viene fatta una seconda normalizzazione.
-          #
-          # La normalizzazione degli slot storici fino al 18/09
-          # viene invece gestita nella ricostruzione del DAILY.
+          # Il 20/09 rimane volutamente RAW negli slot 10 minuti:
+          # la giornata Daily viene forzata separatamente.
           # ============================================================
 
-          if archive_date >= "2026-09-20":
+          if archive_date >= "2026-09-21":
 
-              # Dal 20/09 i dati sono già normalizzati.
-              normalized_archive_temp = avg_temp
-              normalized_archive_humidity = avg_humidity
+              normalized_archive_temp, normalized_archive_humidity = (
+                  normalize_temperature(
+                      avg_temp,
+                      avg_humidity
+                  )
+              )
 
           elif archive_date >= NORMALIZATION_START_DATE:
 
@@ -757,8 +758,6 @@ jobs:
           # ============================================================
           # ARCHIVIO DAILY
           #
-          # REGOLA:
-          #
           # 01/09 - 18/09:
           # gli slot dell'archivio sono storici/non normalizzati.
           # Prima di confrontare min e max li normalizziamo.
@@ -769,9 +768,13 @@ jobs:
           # min 16.2 °C alle 07:50
           # max 28.8 °C alle 16:10
           #
-          # Dal 20/09:
-          # gli slot sono già normalizzati e vengono usati
-          # direttamente senza alcuna normalizzazione aggiuntiva.
+          # 20/09:
+          # valori definitivi forzati:
+          # min 14.9 °C alle 06:50
+          # max 28.7 °C alle 16:30
+          #
+          # Dal 21/09:
+          # gli slot sono normalizzati alla scrittura.
           # ============================================================
 
           tenmin = read_json(
@@ -836,13 +839,14 @@ jobs:
                       )
 
               # --------------------------------------------------------
-              # DAL 20/09
-              # Nessuna normalizzazione: lo slot è già normalizzato.
+              # 19/09 e 20/09
+              # Vengono gestiti separatamente sotto.
               # --------------------------------------------------------
 
-              # Il 19/09 viene gestito separatamente sotto.
-
-              if row_date == "2026-09-19":
+              if row_date in (
+                  "2026-09-19",
+                  "2026-09-20"
+              ):
                   continue
 
               current = archive_daily_map.get(
@@ -887,9 +891,6 @@ jobs:
 
           # ============================================================
           # 19/09: GIORNATA IBRIDA
-          #
-          # Questi sono i valori definitivi che devono comparire
-          # nell'archivio Daily.
           # ============================================================
 
           archive_daily_map["2026-09-19"] = {
@@ -902,12 +903,31 @@ jobs:
           }
 
           # ============================================================
+          # 20/09: VALORI DEFINITIVI FORZATI
+          #
+          # Gli slot 10 minuti del 20/09 non vengono riparati.
+          # Il Daily ufficiale utilizza questi valori fissi.
+          # ============================================================
+
+          archive_daily_map["2026-09-20"] = {
+              "date": "2026-09-20",
+              "min": 14.9,
+              "minTime": "06:50",
+              "max": 28.7,
+              "maxTime": "16:30",
+              "method": "daily_min_max_fixed_2026-09-20"
+          }
+
+          # ============================================================
           # METHOD
           # ============================================================
 
           for date, row in archive_daily_map.items():
 
-              if date != "2026-09-19":
+              if date not in (
+                  "2026-09-19",
+                  "2026-09-20"
+              ):
 
                   if date <= "2026-09-18":
 
