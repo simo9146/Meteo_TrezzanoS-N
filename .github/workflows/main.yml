@@ -67,7 +67,7 @@ jobs:
           # Correzione UR: +3 punti percentuali
           UR_CORRECTION = 3.0
 
-          # Correzione una tantum del dato errato di 7,2 °C
+          # Correzione una tantum del vecchio dato errato
           REPAIR_DATE = "2026-09-19"
           REPAIR_BAD_TEMPERATURE = 7.2
 
@@ -187,13 +187,8 @@ jobs:
 
               try:
 
-                  # Costanti Magnus
                   a = 17.62
                   b = 243.12
-
-                  # ----------------------------------------------------
-                  # 1. Punto di rugiada originale
-                  # ----------------------------------------------------
 
                   gamma = (
                       math.log(humidity / 100.0)
@@ -207,12 +202,6 @@ jobs:
                       b * gamma
                       / (a - gamma)
                   )
-
-                  # ----------------------------------------------------
-                  # 2. Nuova temperatura con UR +3
-                  #
-                  # Manteniamo invariato il punto di rugiada.
-                  # ----------------------------------------------------
 
                   gamma_new = (
                       (
@@ -347,7 +336,6 @@ jobs:
               home_temp = raw_temp
               home_humidity = raw_humidity
 
-          # Arrotondamento a 1 decimale
           home_temp = round(home_temp, 1)
           home_humidity = round(home_humidity, 1)
 
@@ -751,10 +739,14 @@ jobs:
           # ============================================================
           # ARCHIVIO DAILY
           #
-          # Il daily viene ricostruito dall'intero archivio 10 minuti.
-          # In questo modo min/max sono sempre realmente il valore più
-          # basso e più alto registrato per ciascun giorno e un eventuale
-          # vecchio valore errato nel daily non può rimanere memorizzato.
+          # IMPORTANTE:
+          # il Daily viene ricostruito da TUTTO il file 10 minuti.
+          #
+          # Quindi per ogni giornata:
+          # MIN = slot con temperatura più bassa
+          # MAX = slot con temperatura più alta
+          #
+          # Non viene più utilizzato il vecchio valore del Daily.
           # ============================================================
 
           archive_daily_map = {}
@@ -783,12 +775,10 @@ jobs:
 
                   archive_daily_map[row_date] = {
                       "date": row_date,
-                      "min": row_temp,
+                      "min": round(row_temp, 1),
                       "minTime": row_time,
-                      "max": row_temp,
-                      "maxTime": row_time,
-                      "method":
-                          "min_10min_max_10min_normalized_UR_plus_3"
+                      "max": round(row_temp, 1),
+                      "maxTime": row_time
                   }
 
               else:
@@ -801,7 +791,11 @@ jobs:
                       )
                   ):
 
-                      current["min"] = row_temp
+                      current["min"] = round(
+                          row_temp,
+                          1
+                      )
+
                       current["minTime"] = row_time
 
                   if (
@@ -812,23 +806,28 @@ jobs:
                       )
                   ):
 
-                      current["max"] = row_temp
+                      current["max"] = round(
+                          row_temp,
+                          1
+                      )
+
                       current["maxTime"] = row_time
 
           archive_daily = list(
               archive_daily_map.values()
           )
 
-          # ------------------------------------------------------------
-          # CORREZIONE UNA TANTUM DEL 19/09/2026
+          # ============================================================
+          # CORREZIONE SPECIFICA DEL 19/09/2026
           #
-          # Valori verificati:
+          # Valori verificati sui dati SwitchBot:
           # minima 16.2 °C alle 07:50
           # massima 28.8 °C alle 16:10
           #
-          # Dal 20/09 in poi il daily viene sempre calcolato
-          # automaticamente dall'intero weather-archive-10min.json.
-          # ------------------------------------------------------------
+          # Questa correzione riguarda esclusivamente il 19/09.
+          # Dal 20/09 in poi il Daily viene calcolato automaticamente
+          # dagli slot reali da 10 minuti.
+          # ============================================================
 
           for row in archive_daily:
 
@@ -836,19 +835,23 @@ jobs:
 
                   row["min"] = 16.2
                   row["minTime"] = "07:50"
+
                   row["max"] = 28.8
                   row["maxTime"] = "16:10"
-                  row["method"] = (
-                      "min_10min_max_10min_normalized_UR_plus_3"
-                  )
 
                   print(
-                      "RIPARAZIONE ARCHIVIO DAILY 19/09: "
-                      "16.2 °C alle 07:50 / "
-                      "28.8 °C alle 16:10"
+                      "CORREZIONE DAILY 19/09: "
+                      "min 16.2 °C alle 07:50 / "
+                      "max 28.8 °C alle 16:10"
                   )
 
                   break
+
+          # Metodo del Daily
+          for row in archive_daily:
+              row["method"] = (
+                  "min_10min_max_10min_normalized_UR_plus_3"
+              )
 
           archive_daily.sort(
               key=lambda x: x.get("date", "")
