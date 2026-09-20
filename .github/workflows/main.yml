@@ -67,7 +67,7 @@ jobs:
           # Correzione UR: +3 punti percentuali
           UR_CORRECTION = 3.0
 
-          # Correzione una tantum del dato errato di 7,2 °C
+          # Correzione una tantum del vecchio dato errato
           REPAIR_DATE = "2026-09-19"
           REPAIR_BAD_TEMPERATURE = 7.2
 
@@ -88,6 +88,7 @@ jobs:
               except Exception:
                   return default
 
+
           def write_json(path, data):
               Path(path).write_text(
                   json.dumps(
@@ -98,6 +99,7 @@ jobs:
                   encoding="utf-8"
               )
 
+
           def parse_iso(value):
               try:
                   return datetime.fromisoformat(
@@ -106,11 +108,13 @@ jobs:
               except Exception:
                   return None
 
+
           def run_git(*args):
               subprocess.run(
                   ["git", *args],
                   check=True
               )
+
 
           def commit_and_push(files, message):
 
@@ -168,15 +172,8 @@ jobs:
           # ============================================================
           # NORMALIZZAZIONE TERMOIGROMETRICA
           #
-          # Esempio:
-          #
-          # 28.7 °C / 52% UR
-          #
-          # diventa:
-          #
-          # 27.7 °C / 55% UR
-          #
-          # mantenendo invariato il punto di rugiada.
+          # Mantiene invariato il punto di rugiada.
+          # L'UR viene aumentata di 3 punti percentuali.
           # ============================================================
 
           def normalize_temperature(temperature, humidity):
@@ -194,13 +191,8 @@ jobs:
 
               try:
 
-                  # Costanti Magnus
                   a = 17.62
                   b = 243.12
-
-                  # ----------------------------------------------------
-                  # 1. Punto di rugiada originale
-                  # ----------------------------------------------------
 
                   gamma = (
                       math.log(humidity / 100.0)
@@ -214,12 +206,6 @@ jobs:
                       b * gamma
                       / (a - gamma)
                   )
-
-                  # ----------------------------------------------------
-                  # 2. Nuova temperatura con UR +3
-                  #
-                  # Manteniamo invariato il punto di rugiada.
-                  # ----------------------------------------------------
 
                   gamma_new = (
                       (
@@ -354,7 +340,6 @@ jobs:
               home_temp = raw_temp
               home_humidity = raw_humidity
 
-          # Arrotondamento a 1 decimale
           home_temp = round(home_temp, 1)
           home_humidity = round(home_humidity, 1)
 
@@ -660,9 +645,23 @@ jobs:
 
           # ============================================================
           # NORMALIZZAZIONE MEDIA
+          #
+          # IMPORTANTE:
+          #
+          # Dal 20/09 gli slot sono già normalizzati.
+          # Qui NON viene fatta una seconda normalizzazione.
+          #
+          # La normalizzazione degli slot storici fino al 18/09
+          # viene invece gestita nella ricostruzione del DAILY.
           # ============================================================
 
-          if archive_date >= NORMALIZATION_START_DATE:
+          if archive_date >= "2026-09-20":
+
+              # Dal 20/09 i dati sono già normalizzati.
+              normalized_archive_temp = avg_temp
+              normalized_archive_humidity = avg_humidity
+
+          elif archive_date >= NORMALIZATION_START_DATE:
 
               normalized_archive_temp, normalized_archive_humidity = (
                   normalize_temperature(
@@ -693,7 +692,7 @@ jobs:
           )
 
           print(
-              "ARCHIVIO NORMALIZZATO - "
+              "ARCHIVIO - "
               f"{normalized_archive_temp:.1f} °C / "
               f"{normalized_archive_humidity:.1f}%"
           )
@@ -757,121 +756,180 @@ jobs:
 
           # ============================================================
           # ARCHIVIO DAILY
+          #
+          # REGOLA:
+          #
+          # 01/09 - 18/09:
+          # gli slot dell'archivio sono storici/non normalizzati.
+          # Prima di confrontare min e max li normalizziamo.
+          #
+          # 19/09:
+          # giornata ibrida.
+          # Valori definitivi:
+          # min 16.2 °C alle 07:50
+          # max 28.8 °C alle 16:10
+          #
+          # Dal 20/09:
+          # gli slot sono già normalizzati e vengono usati
+          # direttamente senza alcuna normalizzazione aggiuntiva.
           # ============================================================
 
-          archive_daily = read_json(
-              "weather-archive-daily.json",
+          tenmin = read_json(
+              "weather-archive-10min.json",
               []
           )
 
-          if not isinstance(
-              archive_daily,
-              list
-          ):
-              archive_daily = []
+          if not isinstance(tenmin, list):
+              tenmin = []
 
-          day = next(
-              (
-                  row
-                  for row in archive_daily
-                  if (
-                      isinstance(row, dict)
-                      and row.get("date")
-                      == archive_date
-                  )
-              ),
-              None
-          )
+          archive_daily_map = {}
 
-          if day is None:
+          for row in tenmin:
 
-              day = {
-                  "date": archive_date,
+              if not isinstance(row, dict):
+                  continue
 
-                  "min":
-                      normalized_archive_temp,
+              row_date = row.get("date")
 
-                  "minTime":
-                      archive_time,
+              if not row_date:
+                  continue
 
-                  "max":
-                      normalized_archive_temp,
-
-                  "maxTime":
-                      archive_time,
-
-                  "method":
-                      "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
-              }
-
-              archive_daily.append(day)
-
-          else:
-
-              if (
-                  normalized_archive_temp
-                  < float(
-                      day.get(
-                          "min",
-                          normalized_archive_temp
-                      )
-                  )
-              ):
-
-                  day["min"] = (
-                      normalized_archive_temp
-                  )
-
-                  day["minTime"] = (
-                      archive_time
-                  )
-
-              if (
-                  normalized_archive_temp
-                  > float(
-                      day.get(
-                          "max",
-                          normalized_archive_temp
-                      )
-                  )
-              ):
-
-                  day["max"] = (
-                      normalized_archive_temp
-                  )
-
-                  day["maxTime"] = (
-                      archive_time
-                  )
-
-              day["method"] = (
-                  "10min_mean_of_5_samples_every_2min_normalized_UR_plus_3"
+              raw_temperature = row.get(
+                  "temperature"
               )
 
-          # ============================================================
-          # CORREZIONE UNA TANTUM DEL 19/09/2026
-          #
-          # NON TOCCA LA RACCOLTA DATI.
-          # NON TOCCA weather-archive-10min.json.
-          # NON TOCCA GLI ALTRI GIORNI.
-          # ============================================================
-
-          for row in archive_daily:
-
-              if (
-                  isinstance(row, dict)
-                  and row.get("date")
-                  == "2026-09-19"
+              if not isinstance(
+                  raw_temperature,
+                  (int, float)
               ):
+                  continue
 
-                  row["min"] = 16.2
-                  row["minTime"] = "07:50"
+              temperature = float(
+                  raw_temperature
+              )
 
-                  row["max"] = 28.8
-                  row["maxTime"] = "16:10"
+              row_time = row.get(
+                  "localTime"
+              )
+
+              row_humidity = row.get(
+                  "humidity"
+              )
+
+              # --------------------------------------------------------
+              # FINO AL 18/09
+              # Normalizziamo gli slot storici prima del confronto.
+              # --------------------------------------------------------
+
+              if row_date <= "2026-09-18":
+
+                  if isinstance(
+                      row_humidity,
+                      (int, float)
+                  ):
+
+                      temperature, _ = (
+                          normalize_temperature(
+                              temperature,
+                              float(row_humidity)
+                          )
+                      )
+
+              # --------------------------------------------------------
+              # DAL 20/09
+              # Nessuna normalizzazione: lo slot è già normalizzato.
+              # --------------------------------------------------------
+
+              # Il 19/09 viene gestito separatamente sotto.
+
+              if row_date == "2026-09-19":
+                  continue
+
+              current = archive_daily_map.get(
+                  row_date
+              )
+
+              if current is None:
+
+                  archive_daily_map[row_date] = {
+                      "date": row_date,
+                      "min": round(
+                          temperature,
+                          1
+                      ),
+                      "minTime": row_time,
+                      "max": round(
+                          temperature,
+                          1
+                      ),
+                      "maxTime": row_time
+                  }
+
+              else:
+
+                  if temperature < current["min"]:
+
+                      current["min"] = round(
+                          temperature,
+                          1
+                      )
+
+                      current["minTime"] = row_time
+
+                  if temperature > current["max"]:
+
+                      current["max"] = round(
+                          temperature,
+                          1
+                      )
+
+                      current["maxTime"] = row_time
+
+          # ============================================================
+          # 19/09: GIORNATA IBRIDA
+          #
+          # Questi sono i valori definitivi che devono comparire
+          # nell'archivio Daily.
+          # ============================================================
+
+          archive_daily_map["2026-09-19"] = {
+              "date": "2026-09-19",
+              "min": 16.2,
+              "minTime": "07:50",
+              "max": 28.8,
+              "maxTime": "16:10",
+              "method": "daily_min_max_hybrid_2026-09-19"
+          }
+
+          # ============================================================
+          # METHOD
+          # ============================================================
+
+          for date, row in archive_daily_map.items():
+
+              if date != "2026-09-19":
+
+                  if date <= "2026-09-18":
+
+                      row["method"] = (
+                          "daily_min_max_10min_normalized_UR_plus_3"
+                      )
+
+                  else:
+
+                      row["method"] = (
+                          "daily_min_max_10min_already_normalized"
+                      )
+
+          archive_daily = list(
+              archive_daily_map.values()
+          )
 
           archive_daily.sort(
-              key=lambda x: x.get("date", "")
+              key=lambda x: x.get(
+                  "date",
+                  ""
+              )
           )
 
           write_json(
@@ -880,13 +938,18 @@ jobs:
           )
 
           print(
-              "ARCHIVIO - slot "
-              f"{block_start.strftime('%H:%M')}-"
-              f"{block_end.strftime('%H:%M')} => "
-              f"{normalized_archive_temp:.1f} °C / "
-              f"{normalized_archive_humidity:.1f}% "
-              f"({len(samples)} campioni)"
+              "DAILY ARCHIVIO RICOSTRUITO"
           )
+
+          for row in archive_daily:
+
+              print(
+                  f"{row['date']} - "
+                  f"MIN {row['min']:.1f} °C "
+                  f"({row['minTime']}) - "
+                  f"MAX {row['max']:.1f} °C "
+                  f"({row['maxTime']})"
+              )
 
           # ============================================================
           # PUSH ARCHIVIO
