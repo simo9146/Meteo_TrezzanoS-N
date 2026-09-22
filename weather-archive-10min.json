@@ -32728,7 +32728,7 @@
     "date": "2026-09-22",
     "localTime": "03:20",
     "temperature": 19.8,
-    "humidity": 83.0,
+    "humidity": 82.6,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
