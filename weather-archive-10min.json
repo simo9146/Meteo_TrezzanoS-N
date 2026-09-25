@@ -37456,5 +37456,14 @@
     "humidity": 55.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
+  },
+  {
+    "time": "2026-09-25T17:30:00Z",
+    "date": "2026-09-25",
+    "localTime": "19:30",
+    "temperature": 20.3,
+    "humidity": 56.6,
+    "samples": 5,
+    "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
 ]
