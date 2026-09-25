@@ -37263,8 +37263,8 @@
     "time": "2026-09-25T13:50:00Z",
     "date": "2026-09-25",
     "localTime": "15:50",
-    "temperature": 22.9,
-    "humidity": 52.6,
+    "temperature": 24.0,
+    "humidity": 53.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
