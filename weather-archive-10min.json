@@ -39964,7 +39964,7 @@
     "date": "2026-09-27",
     "localTime": "17:50",
     "temperature": 25.5,
-    "humidity": 44.0,
+    "humidity": 43.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
