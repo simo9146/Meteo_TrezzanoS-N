@@ -42348,8 +42348,8 @@
     "time": "2026-09-29T12:00:00Z",
     "date": "2026-09-29",
     "localTime": "14:00",
-    "temperature": 23.8,
-    "humidity": 53.2,
+    "temperature": 24.1,
+    "humidity": 52.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
