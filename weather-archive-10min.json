@@ -49135,7 +49135,7 @@
     "date": "2026-10-04",
     "localTime": "19:50",
     "temperature": 17.1,
-    "humidity": 57.0,
+    "humidity": 60.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_UR_plus_3"
   }
