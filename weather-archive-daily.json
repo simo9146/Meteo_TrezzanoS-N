@@ -5,7 +5,7 @@
     "minTime": "17:10",
     "max": 29.4,
     "maxTime": "17:10",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-25",
@@ -13,7 +13,7 @@
     "minTime": "00:00",
     "max": 23.7,
     "maxTime": "21:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-26",
@@ -21,7 +21,7 @@
     "minTime": "01:10",
     "max": 29.0,
     "maxTime": "15:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-27",
@@ -29,7 +29,7 @@
     "minTime": "05:30",
     "max": 30.8,
     "maxTime": "15:50",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-28",
@@ -37,15 +37,15 @@
     "minTime": "23:50",
     "max": 31.6,
     "maxTime": "16:10",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-29",
     "min": 18.9,
-    "minTime": "07:50",
+    "minTime": "07:40",
     "max": 31.2,
     "maxTime": "16:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-30",
@@ -53,7 +53,7 @@
     "minTime": "05:40",
     "max": 31.1,
     "maxTime": "15:30",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-08-31",
@@ -61,7 +61,7 @@
     "minTime": "04:50",
     "max": 32.9,
     "maxTime": "18:30",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-01",
@@ -69,7 +69,7 @@
     "minTime": "07:10",
     "max": 31.4,
     "maxTime": "17:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-02",
@@ -77,7 +77,7 @@
     "minTime": "00:00",
     "max": 31.9,
     "maxTime": "16:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-03",
@@ -85,7 +85,7 @@
     "minTime": "07:10",
     "max": 31.6,
     "maxTime": "17:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-04",
@@ -93,7 +93,7 @@
     "minTime": "07:30",
     "max": 34.0,
     "maxTime": "17:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-05",
@@ -101,7 +101,7 @@
     "minTime": "07:20",
     "max": 33.3,
     "maxTime": "16:50",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-06",
@@ -109,7 +109,7 @@
     "minTime": "01:40",
     "max": 33.6,
     "maxTime": "17:50",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-07",
@@ -117,7 +117,7 @@
     "minTime": "06:20",
     "max": 33.1,
     "maxTime": "17:10",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-08",
@@ -125,31 +125,31 @@
     "minTime": "07:30",
     "max": 33.1,
     "maxTime": "15:50",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-09",
-    "min": 17.4,
+    "min": 17.6,
     "minTime": "13:50",
     "max": 25.4,
     "maxTime": "16:30",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-10",
-    "min": 15.5,
-    "minTime": "05:50",
+    "min": 15.9,
+    "minTime": "05:40",
     "max": 24.4,
     "maxTime": "18:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-11",
-    "min": 17.0,
-    "minTime": "07:20",
+    "min": 17.1,
+    "minTime": "08:00",
     "max": 27.6,
     "maxTime": "16:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-12",
@@ -157,7 +157,7 @@
     "minTime": "05:50",
     "max": 27.2,
     "maxTime": "16:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-13",
@@ -165,15 +165,15 @@
     "minTime": "01:40",
     "max": 28.5,
     "maxTime": "16:10",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-14",
-    "min": 15.8,
+    "min": 16.0,
     "minTime": "07:20",
     "max": 30.3,
     "maxTime": "17:00",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-15",
@@ -181,7 +181,7 @@
     "minTime": "23:30",
     "max": 28.3,
     "maxTime": "16:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-16",
@@ -189,7 +189,7 @@
     "minTime": "02:20",
     "max": 29.0,
     "maxTime": "15:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-17",
@@ -197,7 +197,7 @@
     "minTime": "09:20",
     "max": 23.3,
     "maxTime": "16:40",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-18",
@@ -205,7 +205,7 @@
     "minTime": "07:10",
     "max": 26.2,
     "maxTime": "16:20",
-    "method": "daily_min_max_10min_normalized_UR_plus_3"
+    "method": "daily_min_max_10min_normalized_variable_UR_correction"
   },
   {
     "date": "2026-09-19",
