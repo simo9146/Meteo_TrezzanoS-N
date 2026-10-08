@@ -173,7 +173,12 @@ jobs:
           # NORMALIZZAZIONE TERMOIGROMETRICA
           #
           # Mantiene invariato il punto di rugiada.
-          # L'UR viene aumentata di 3 punti percentuali.
+          #
+          # Correzione UR in base all'umidità rilevata:
+          #   UR <= 90%   -> +3 punti percentuali
+          #   UR 91-92%   -> +2 punti percentuali
+          #   UR 93-94%   -> +1 punto percentuale
+          #   UR >= 95%   -> nessuna correzione e nessuna conversione
           # ============================================================
 
           def normalize_temperature(temperature, humidity):
@@ -181,8 +186,23 @@ jobs:
               if humidity is None:
                   return temperature, humidity
 
+              # Dal 95% compreso in poi manteniamo
+              # esattamente i valori originali SwitchBot.
+              if humidity >= 95.0:
+                  return temperature, humidity
+
+              # Determina la correzione UR in base al valore originale.
+              if humidity <= 90.0:
+                  correction = 3.0
+
+              elif humidity <= 92.0:
+                  correction = 2.0
+
+              else:
+                  correction = 1.0
+
               corrected_humidity = min(
-                  humidity + UR_CORRECTION,
+                  humidity + correction,
                   100.0
               )
 
@@ -723,7 +743,7 @@ jobs:
                   len(samples),
 
               "method":
-                  "mean_5_samples_2min_normalized_UR_plus_3"
+                  "mean_5_samples_2min_normalized_variable_UR_correction"
           }
 
           tenmin = read_json(
@@ -932,7 +952,7 @@ jobs:
                   if date <= "2026-09-18":
 
                       row["method"] = (
-                          "daily_min_max_10min_normalized_UR_plus_3"
+                          "daily_min_max_10min_normalized_variable_UR_correction"
                       )
 
                   else:
