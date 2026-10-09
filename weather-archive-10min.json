@@ -55696,7 +55696,7 @@
     "date": "2026-10-09",
     "localTime": "23:40",
     "temperature": 14.7,
-    "humidity": 92.0,
+    "humidity": 92.6,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
