@@ -59659,5 +59659,14 @@
     "humidity": 68.0,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
+  },
+  {
+    "time": "2026-10-12T23:20:00Z",
+    "date": "2026-10-13",
+    "localTime": "01:20",
+    "temperature": 15.3,
+    "humidity": 68.0,
+    "samples": 5,
+    "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
 ]
