@@ -62800,5 +62800,14 @@
     "humidity": 75.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
+  },
+  {
+    "time": "2026-10-15T09:30:00Z",
+    "date": "2026-10-15",
+    "localTime": "11:30",
+    "temperature": 16.8,
+    "humidity": 75.0,
+    "samples": 5,
+    "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
 ]
