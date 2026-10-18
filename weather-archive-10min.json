@@ -66225,8 +66225,8 @@
     "time": "2026-10-18T01:00:00Z",
     "date": "2026-10-18",
     "localTime": "03:00",
-    "temperature": 17.0,
-    "humidity": 73.4,
+    "temperature": 16.9,
+    "humidity": 74.0,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
