@@ -500,7 +500,7 @@
     "min": 10.3,
     "minTime": "00:50",
     "max": 10.6,
-    "maxTime": "02:40",
+    "maxTime": "02:10",
     "method": "daily_min_max_10min_already_normalized"
   }
 ]
