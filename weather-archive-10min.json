@@ -78087,8 +78087,8 @@
     "time": "2026-10-27T06:30:00Z",
     "date": "2026-10-27",
     "localTime": "07:30",
-    "temperature": 4.9,
-    "humidity": 95.8,
+    "temperature": 4.5,
+    "humidity": 94.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
