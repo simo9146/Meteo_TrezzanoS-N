@@ -529,8 +529,8 @@
   },
   {
     "date": "2026-10-29",
-    "min": 6.1,
-    "minTime": "00:50",
+    "min": 5.9,
+    "minTime": "01:10",
     "max": 7.7,
     "maxTime": "00:20",
     "method": "daily_min_max_10min_already_normalized"
