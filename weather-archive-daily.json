@@ -569,10 +569,10 @@
   },
   {
     "date": "2026-11-03",
-    "min": 5.3,
-    "minTime": "07:40",
+    "min": 3.5,
+    "minTime": "manuale",
     "max": 7.0,
     "maxTime": "00:10",
-    "method": "daily_min_max_10min_already_normalized"
+    "method": "daily_min_max_10min_min_forced_2026-11-03_sensor_issue"
   }
 ]
