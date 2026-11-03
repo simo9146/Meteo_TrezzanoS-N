@@ -571,8 +571,8 @@
     "date": "2026-11-03",
     "min": 3.5,
     "minTime": "manuale",
-    "max": 9.9,
-    "maxTime": "10:10",
+    "max": 10.4,
+    "maxTime": "10:20",
     "method": "daily_min_max_10min_min_forced_2026-11-03_sensor_issue"
   }
 ]
