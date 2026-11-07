@@ -1,15 +1,5 @@
 [
   {
-    "time": "2026-10-31T02:20:47.789221Z",
-    "temperature": 6.9,
-    "humidity": 92.0
-  },
-  {
-    "time": "2026-10-31T02:30:56.992310Z",
-    "temperature": 6.2,
-    "humidity": 89.0
-  },
-  {
     "time": "2026-10-31T02:39:25.488856Z",
     "temperature": 6.1,
     "humidity": 93.0
@@ -5141,6 +5131,11 @@
   },
   {
     "time": "2026-11-07T02:20:43.463600Z",
+    "temperature": 8.6,
+    "humidity": 94.0
+  },
+  {
+    "time": "2026-11-07T02:31:02.049299Z",
     "temperature": 8.6,
     "humidity": 94.0
   }
