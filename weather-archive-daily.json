@@ -603,8 +603,8 @@
     "date": "2026-11-07",
     "min": 8.5,
     "minTime": "03:50",
-    "max": 10.5,
-    "maxTime": "13:20",
+    "max": 10.7,
+    "maxTime": "13:30",
     "method": "daily_min_max_10min_already_normalized"
   }
 ]
