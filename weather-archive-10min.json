@@ -94630,7 +94630,7 @@
     "date": "2026-11-09",
     "localTime": "03:30",
     "temperature": 6.9,
-    "humidity": 97.0,
+    "humidity": 96.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
