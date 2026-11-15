@@ -102271,7 +102271,7 @@
     "date": "2026-11-15",
     "localTime": "02:20",
     "temperature": 8.0,
-    "humidity": 71.6,
+    "humidity": 72.0,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
