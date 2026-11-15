@@ -102630,8 +102630,8 @@
     "time": "2026-11-15T08:00:00Z",
     "date": "2026-11-15",
     "localTime": "09:00",
-    "temperature": 8.5,
-    "humidity": 73.4,
+    "temperature": 8.6,
+    "humidity": 72.2,
     "samples": 5,
     "method": "mean_5_samples_2min_normalized_variable_UR_correction"
   }
